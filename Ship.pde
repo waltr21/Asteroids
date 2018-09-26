@@ -1,6 +1,7 @@
 public class Ship{
     float x, y, size, angle, turnRadius, deRate;
     ArrayList<Character> pressedChars;
+    ArrayList<Bullet> bullets;
     boolean turn, accelerate;
     char k;
     PVector velocity;
@@ -22,6 +23,8 @@ public class Ship{
         //ArrayList for the current pressed characters.
         //(Mainly used for making turning less janky.)
         pressedChars = new ArrayList<Character>();
+
+        bullets = new ArrayList<Bullet>();
         velocity = new PVector();
     }
 
@@ -112,11 +115,28 @@ public class Ship{
     }
 
     /**
+     * Display the bullets and remove if out of the screen.
+     */
+    public void showBullets(){
+        for (int i = bullets.size() - 1; i >= 0; i--){
+            Bullet b = bullets.get(i);
+            b.show();
+
+            //If the bullet is out of the screen then we want to remove it.
+            if (b.bound())
+                bullets.remove(i);
+        }
+    }
+
+    /**
      * Display the ship to the screen.
      */
     public void show(){
         pushMatrix();
+        //Display the bullets
+        showBullets();
 
+        //Edit pos of the ship.
         turn();
         move();
         accelerate();
@@ -145,6 +165,10 @@ public class Ship{
 
         if (k == 'w'){
             accelerate = true;
+        }
+
+        if (k == ' '){
+            bullets.add(new Bullet(x, y, angle));
         }
     }
 
