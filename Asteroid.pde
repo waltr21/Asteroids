@@ -1,15 +1,25 @@
 public class Asteroid{
     float x, y, size;
-    int level;
+    int level, maxLevel;
     PVector velocity;
+    Ship p;
 
-    public Asteroid(float x, float y, int level){
+    /**
+     * Constructor for the Asteroid class.
+     * @param x     X pos of the asteroid
+     * @param y     Y pos of the asteroid
+     * @param level Level of asteroid (1-3)
+     * @param p     Current player (Used for x/y refernecing)
+     */
+    public Asteroid(float x, float y, int level, Ship p){
         this.x = x;
         this.y = y;
         this.size = 30 * level;
         this.level = level;
-        velocity = PVector.fromAngle(random(-PI, PI));
-        velocity.mult((4-level) * 0.5);
+        this.maxLevel = 3;
+        this.p = p;
+        this.velocity = PVector.fromAngle(random(-PI, PI));
+        this.velocity.mult(((maxLevel+1) - level) * 0.5);
     }
 
 
@@ -37,12 +47,20 @@ public class Asteroid{
         y += velocity.y;
     }
 
+    public void checkHit(){
+        float distance = dist(x, y, p.getX(), p.getY());
+        //System.out.println(distance);
+        if (distance < size/2 + p.getSize()){
+            p.setHit();
+        }
+    }
+
     public void explode(){
         if (level > 1){
             int numChildren = 2;
             asteroids.remove(this);
             for (int i = 0; i < numChildren; i++){
-                asteroids.add(new Asteroid(x, y, level - 1));
+                asteroids.add(new Asteroid(x, y, level - 1, player));
             }
         }
         else{
@@ -50,10 +68,23 @@ public class Asteroid{
         }
     }
 
+    public int getScore(){
+        if (level == 1)
+            return 50;
+        else if (level == 2)
+            return 25;
+        else
+            return 10;
+
+    }
+
     public void show(){
         pushMatrix();
+        checkHit();
         travel();
         bound();
+        noFill();
+        stroke(255);
         ellipseMode(CENTER);
         translate(x, y);
         ellipse(0, 0, size, size);

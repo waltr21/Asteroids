@@ -1,14 +1,16 @@
 public class Bullet{
     float x, y, angle, size;
     PVector velocity;
+    Ship p;
 
-    public Bullet(float x, float y, float angle){
+    public Bullet(float x, float y, float angle, Ship p){
         this.x = x;
         this.y = y;
         this.angle = angle - PI/2;
         this.size = 5;
-        velocity = PVector.fromAngle(this.angle);
-        velocity.mult(8);
+        this.p = p;
+        this.velocity = PVector.fromAngle(this.angle);
+        this.velocity.mult(8);
     }
 
     public void travel(){
@@ -38,6 +40,7 @@ public class Bullet{
         for (Asteroid a : asteroids){
             float distance = dist(a.getX(), a.getY(), x, y);
             if (distance < a.getSize()/2){
+                p.addScore(a.getScore());
                 a.explode();
                 x = width + 200;
                 break;
