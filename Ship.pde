@@ -8,6 +8,7 @@ public class Ship{
 
     /**
      * Constuctor for the ship class.
+     * @param a Asteroids in the game for the ship to reference.
      */
     public Ship(){
         //X and Y for the ship.
@@ -23,7 +24,6 @@ public class Ship{
         //ArrayList for the current pressed characters.
         //(Mainly used for making turning less janky.)
         pressedChars = new ArrayList<Character>();
-
         bullets = new ArrayList<Bullet>();
         velocity = new PVector();
     }
@@ -167,7 +167,7 @@ public class Ship{
             accelerate = true;
         }
 
-        if (k == ' '){
+        if (k == ' ' && bullets.size() < 4){
             bullets.add(new Bullet(x, y, angle));
         }
     }
@@ -183,6 +183,12 @@ public class Ship{
         }
         if (k == 'w'){
             accelerate = false;
+        }
+    }
+
+    public void processClick(){
+        if (bullets.size() < 4){
+            bullets.add(new Bullet(x, y, angle));
         }
     }
 }

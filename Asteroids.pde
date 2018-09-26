@@ -1,7 +1,7 @@
 ArrayList<MenuButton> buttons;
 ArrayList<Asteroid> asteroids;
 MenuButton play;
-int scene;
+int scene, level;
 Ship player;
 
 void setup(){
@@ -15,11 +15,11 @@ void setup(){
 void initScene(){
     player = new Ship();
     scene = 0;
+    level = 1;
     buttons = new ArrayList<MenuButton>();
     play = new MenuButton(width/2, height/2 - 100, 2.5, "Single Player", 0, 1);
     asteroids = new ArrayList<Asteroid>();
-    asteroids.add(new Asteroid(100, 100, 4));
-    asteroids.add(new Asteroid(100, 100, 5));
+    resetAstroids(level);
     buttons.add(play);
 }
 
@@ -50,13 +50,34 @@ void scene0(){
  */
 void scene1(){
     background(0);
+    String levelString = "Level " + level;
+    fill(255);
+    text(levelString, width/2, 50);
     player.show();
     showAsteroids();
+    checkLevel();
 }
 
 void showAsteroids(){
     for (Asteroid a : asteroids){
         a.show();
+    }
+}
+
+void resetAstroids(int level){
+    asteroids.clear();
+    int num = 2 + (level * 2) ;
+    for (int i = 0; i < num; i++){
+        float tempX = random(100, width - 100);
+        float tempY = random(100, height/2 - 200); //+ (random(100, height/2 - 200) * int(random(0, 2)));
+        asteroids.add(new Asteroid(tempX, tempY, 3));
+    }
+}
+
+void checkLevel(){
+    if (asteroids.size() < 1){
+        level++;
+        resetAstroids(level);
     }
 }
 
@@ -66,8 +87,13 @@ void showAsteroids(){
 void buttonsCLicked(){
     for (MenuButton mb : buttons){
         int tempScene = mb.setClicked(scene);
-        if (tempScene > 0)
+        if (tempScene > 0){
             scene = tempScene;
+            if (tempScene == 1){
+                level = 1;
+                resetAstroids(level);
+            }
+        }
     }
 }
 
@@ -76,6 +102,7 @@ void buttonsCLicked(){
  */
 void mousePressed(){
     buttonsCLicked();
+    player.processClick();
 }
 
 /**

@@ -34,6 +34,17 @@ public class Bullet{
         return false;
     }
 
+    public void checkHit(){
+        for (Asteroid a : asteroids){
+            float distance = dist(a.getX(), a.getY(), x, y);
+            if (distance < a.getSize()/2){
+                a.explode();
+                x = width + 200;
+                break;
+            }
+        }
+    }
+
     public void show(){
         pushMatrix();
         ellipseMode(CENTER);
@@ -43,6 +54,15 @@ public class Bullet{
         fill(255);
         ellipse(0, 0, size, size);
         popMatrix();
+        checkHit();
+    }
+
+    public float getX(){
+        return x;
+    }
+
+    public float getY(){
+        return y;
     }
 
 }

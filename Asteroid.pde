@@ -1,13 +1,15 @@
 public class Asteroid{
     float x, y, size;
+    int level;
     PVector velocity;
 
-    public Asteroid(float x, float y, float level){
+    public Asteroid(float x, float y, int level){
         this.x = x;
         this.y = y;
-        this.size = 20 * level;
+        this.size = 30 * level;
+        this.level = level;
         velocity = PVector.fromAngle(random(-PI, PI));
-        velocity.mult(6-level);
+        velocity.mult((4-level) * 0.5);
     }
 
 
@@ -35,6 +37,19 @@ public class Asteroid{
         y += velocity.y;
     }
 
+    public void explode(){
+        if (level > 1){
+            int numChildren = 2;
+            asteroids.remove(this);
+            for (int i = 0; i < numChildren; i++){
+                asteroids.add(new Asteroid(x, y, level - 1));
+            }
+        }
+        else{
+            asteroids.remove(this);
+        }
+    }
+
     public void show(){
         pushMatrix();
         travel();
@@ -43,5 +58,17 @@ public class Asteroid{
         translate(x, y);
         ellipse(0, 0, size, size);
         popMatrix();
+    }
+
+    public float getX(){
+        return x;
+    }
+
+    public float getY(){
+        return y;
+    }
+
+    public float getSize(){
+        return size;
     }
 }
