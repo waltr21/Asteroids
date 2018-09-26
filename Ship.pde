@@ -5,37 +5,60 @@ public class Ship{
     char k;
     PVector velocity;
 
+    /**
+     * Constuctor for the ship class.
+     */
     public Ship(){
+        //X and Y for the ship.
         x = width/2;
         y = height/2;
+        //Size of the ship.
         size = 20;
         angle = 0;
         turnRadius = 0.08;
         deRate = 0.05;
         turn = false;
         accelerate = false;
+        //ArrayList for the current pressed characters.
+        //(Mainly used for making turning less janky.)
         pressedChars = new ArrayList<Character>();
         velocity = new PVector();
     }
 
+    /**
+     * Removes one of the current pressed characters from the Array.
+     * If there are no characters left then we stop turning.
+     * @param k key entered by the user.
+     */
     public void freezeTurn(char k){
+
+        //Loop through and find characters we should remove.
         for (int i = pressedChars.size() - 1; i >= 0; i--){
             if (pressedChars.get(i) == k){
                 pressedChars.remove(i);
             }
         }
 
+        //If there are no more charaters then we should stop turning.
         if(pressedChars.size() < 1)
             turn = false;
     }
 
+    /**
+     * Tell the ship to start to turn in the appropriate direction.
+     * @param k key entered by the user.
+     */
     public void setTurn(char k){
         turn = true;
         this.k = Character.toLowerCase(k);
         pressedChars.add(this.k);
     }
 
+    /**
+     * Turn the ship X radians.
+     */
     public void turn(){
+        //Make sure we are in the scene and we should be turning.
         if (scene == 1 && turn){
             if (k == 'a'){
                 angle -= turnRadius;
@@ -46,6 +69,9 @@ public class Ship{
         }
     }
 
+    /**
+     * Bound the player to stay inside of the screen.
+     */
     public void bound(){
         if (x + size < 0){
             x = width + size;
@@ -62,21 +88,32 @@ public class Ship{
         }
     }
 
+    /**
+     * Move in the direction of the current velocity.
+     */
     public void move(){
         x += velocity.x;
         y += velocity.y;
 
+        //Adds "friction" to slow down the ship.
         velocity.mult(0.99);
     }
 
+    /**
+     * Accelerates the ship in the current faced direction.
+     */
     public void accelerate(){
         if (accelerate){
             PVector force = PVector.fromAngle(angle - PI/2);
+            //Limit how strong the force is.
             force.mult(0.08);
             velocity.add(force);
         }
     }
 
+    /**
+     * Display the ship to the screen.
+     */
     public void show(){
         pushMatrix();
 
@@ -96,6 +133,10 @@ public class Ship{
         popMatrix();
     }
 
+    /**
+     * Handle the button pressed by the user.
+     * @param k key entered by the user.
+     */
     public void processButtonPress(char k){
         k = Character.toLowerCase(k);
         if (k == 'a' || k == 'd'){
@@ -107,6 +148,10 @@ public class Ship{
         }
     }
 
+    /**
+     * Handle the button released by the user.
+     * @param k key entered by the user.
+     */
     public void processButtonReleased(char k){
         k = Character.toLowerCase(k);
         if (k == 'a' || k == 'd'){

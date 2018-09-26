@@ -8,6 +8,9 @@ void setup(){
     initScene();
 }
 
+/**
+ * Initialize variables when the game first begins.
+ */
 void initScene(){
     player = new Ship();
     scene = 0;
@@ -16,6 +19,9 @@ void initScene(){
     buttons.add(play);
 }
 
+/**
+ * Draw the appropriate scene
+ */
 void draw(){
     switch(scene){
         case 0:
@@ -27,16 +33,25 @@ void draw(){
     }
 }
 
+/**
+ * Scene for the main menu.
+ */
 void scene0(){
     background(51);
     play.show();
 }
 
+/**
+ * Scene for the actual game.
+ */
 void scene1(){
     background(0);
     player.show();
 }
 
+/**
+ * Call the click buttons for the buttons when there is a mouse click.
+ */
 void buttonsCLicked(){
     for (MenuButton mb : buttons){
         int tempScene = mb.setClicked(scene);
@@ -45,14 +60,23 @@ void buttonsCLicked(){
     }
 }
 
+/**
+ * Mouse click handle.
+ */
 void mousePressed(){
     buttonsCLicked();
 }
 
+/**
+ * Button released handle.
+ */
 void keyReleased(){
     player.processButtonReleased(key);
 }
 
+/**
+ * Button pressed handle.
+ */
 void keyPressed(){
     player.processButtonPress(key);
 }
