@@ -36,6 +36,7 @@ public class Bullet{
 
     public void show(){
         pushMatrix();
+        ellipseMode(CENTER);
         translate(x, y);
         travel();
         noStroke();

@@ -1,4 +1,5 @@
 ArrayList<MenuButton> buttons;
+ArrayList<Asteroid> asteroids;
 MenuButton play;
 int scene;
 Ship player;
@@ -16,6 +17,9 @@ void initScene(){
     scene = 0;
     buttons = new ArrayList<MenuButton>();
     play = new MenuButton(width/2, height/2 - 100, 2.5, "Single Player", 0, 1);
+    asteroids = new ArrayList<Asteroid>();
+    asteroids.add(new Asteroid(100, 100, 4));
+    asteroids.add(new Asteroid(100, 100, 5));
     buttons.add(play);
 }
 
@@ -47,6 +51,13 @@ void scene0(){
 void scene1(){
     background(0);
     player.show();
+    showAsteroids();
+}
+
+void showAsteroids(){
+    for (Asteroid a : asteroids){
+        a.show();
+    }
 }
 
 /**
