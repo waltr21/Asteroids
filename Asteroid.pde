@@ -19,7 +19,7 @@ public class Asteroid{
         this.maxLevel = 3;
         this.p = p;
         this.velocity = PVector.fromAngle(random(-PI, PI));
-        this.velocity.mult(((maxLevel+1) - level) * 0.5);
+        this.velocity.mult(((maxLevel+1) - level) * 0.8);
     }
 
 
@@ -70,11 +70,11 @@ public class Asteroid{
 
     public int getScore(){
         if (level == 1)
-            return 50;
+            return 100;
         else if (level == 2)
-            return 25;
+            return 50;
         else
-            return 10;
+            return 20;
 
     }
 

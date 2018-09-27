@@ -127,7 +127,7 @@ public void buttonsCLicked(){
         if (tempScene > 0){
             scene = tempScene;
             if (tempScene == 1){
-                level = 30;
+                level = 1;
                 resetAstroids(level);
             }
         }
@@ -648,7 +648,7 @@ public class Ship{
     }
 
     private void shoot(){
-        if (bullets.size() < 40){
+        if (bullets.size() < 4){
             bullets.add(new Bullet(x, y, angle, this));
         }
     }
@@ -748,13 +748,13 @@ public class Ship{
         return score;
     }
 }
-    public void settings() {  size(900, 900, OPENGL); }
-    static public void main(String[] passedArgs) {
-        String[] appletArgs = new String[] { "Asteroids" };
-        if (passedArgs != null) {
-          PApplet.main(concat(appletArgs, passedArgs));
-        } else {
-          PApplet.main(appletArgs);
-        }
+  public void settings() {  size(900, 900, OPENGL); }
+  static public void main(String[] passedArgs) {
+    String[] appletArgs = new String[] { "Asteroids" };
+    if (passedArgs != null) {
+      PApplet.main(concat(appletArgs, passedArgs));
+    } else {
+      PApplet.main(appletArgs);
     }
+  }
 }

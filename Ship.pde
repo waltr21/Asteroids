@@ -59,6 +59,7 @@ public class Ship{
      * @param k key entered by the user.
      */
     private void setTurn(char k){
+        //System.out.println("Turn");
         turn = true;
         this.k = Character.toLowerCase(k);
         pressedChars.add(this.k);
@@ -69,7 +70,7 @@ public class Ship{
      */
     private void turn(){
         //Make sure we are in the scene and we should be turning.
-        if (scene == 1 && turn){
+        if (turn){
             if (k == 'a'){
                 angle -= turnRadius;
             }
@@ -120,6 +121,11 @@ public class Ship{
 
         //Adds "friction" to slow down the ship.
         velocity.mult(0.99);
+    }
+
+    private void hyperDrive(){
+        x = random(20, width - 20);
+        y = random(20, height - 20);
     }
 
     /**
@@ -218,6 +224,7 @@ public class Ship{
      * @param k key entered by the user.
      */
     public void processButtonPress(char k){
+
         k = Character.toLowerCase(k);
         if (k == 'a' || k == 'd'){
             setTurn(k);
@@ -229,6 +236,10 @@ public class Ship{
 
         if (k == ' '){
             shoot();
+        }
+
+        if (k == '\n'){
+            hyperDrive();
         }
     }
 
