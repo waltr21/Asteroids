@@ -10,12 +10,25 @@ public class Server{
     private final int BUFFER_SIZE;
     private DatagramChannel udp;
     private ServerSocketChannel tcp;
-    private ArrayList<NameSocket> clients;
+    private ArrayList<NameSocket> TCPclients;
+    private ArrayList<NameSocket> UDPclients;
+
+    //Static because processing is dumb.
+    public static SocketChannel sc;
 
     public Server(){
         port = 8765;
         BUFFER_SIZE = 1024;
-        clients = new ArrayList<>();
+        TCPclients = new ArrayList<>();
+        UDPclients = new ArrayList<>();
+
+        try{
+            tcp = ServerSocketChannel.open();
+            tcp.bind(new InetSocketAddress(port));
+        }
+        catch(Exception e){
+            System.out.println(e);
+        }
 
         Thread threadUDP = new Thread(new Runnable() {
            public void run() {
@@ -24,12 +37,24 @@ public class Server{
         });
         threadUDP.start();
 
-        Thread threadTCP = new Thread(new Runnable() {
-          public void run() {
-              runTCP();
-          }
-        });
-        threadTCP.start();
+        while (true){
+            try{
+                sc = tcp.accept();
+                Thread threadTCP = new Thread(new Runnable() {
+                  public void run() {
+                      runTCP(sc);
+                  }
+                });
+                threadTCP.start();
+            }
+            catch(Exception e){
+                System.out.println(e);
+            }
+        }
+    }
+
+    private void connectThread(){
+
     }
 
     private void runUDP(){
@@ -54,28 +79,10 @@ public class Server{
         }
     }
 
-    // private void addClient(ByteBuffer b, SocketAddress ca){
-    //     String temp = new String(b.array().trim());
-    //     String[] tempArr = temp.split("|");
-    //     String name = tempArr[0];
-    //     boolean found = false;
-    //
-    //     for (NameSocket ns : clients){
-    //         if (ns.name.equals(name))
-    //             found = true;
-    //     }
-    //     if (!found){
-    //         return;
-    //     }
-    // }
-
-    private void runTCP(){
+    private void runTCP(SocketChannel sc){
         try{
             //Bind to the port number.
-            tcp = ServerSocketChannel.open();
-            tcp.bind(new InetSocketAddress(port));
             System.out.println("TCP Connection successful.");
-            SocketChannel sc = tcp.accept();
 
             //Continue to loop and search for packets.
             while(true){
@@ -85,8 +92,6 @@ public class Server{
                 String tempMessage = new String(buffer.array()).trim();
                 parseTCP(tempMessage, sc);
                 //System.out.println(tempMessage);
-
-
             }
         }
         //Exceptions.
@@ -95,23 +100,50 @@ public class Server{
         }
     }
 
-    public void parseTCP(String message, SocketChannel sc){
+    private void parseTCP(String message, SocketChannel sc){
         //Split message
         String[] splitMessage = message.split(",");
+        String name = splitMessage[0];
+        addClient(name, sc);
         //If we are working with an init connect packet.
-        if (splitMessage[0].equals("0")){
+        if (splitMessage[1].equals("0")){
             ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
-            buffer.position(0);
             try{
                 System.out.println("Sent packet");
                 sc.write(buffer);
             }
             catch(Exception e){
-                System.out.println("bleg");
+                System.out.println(e);
             }
         }
+    }
 
+    private void addClient(String name, SocketChannel sc){
+        boolean found = false;
+        for (NameSocket ns : TCPclients){
+            if (ns.name.equals(name)){
+                found = true;
+                break;
+            }
+        }
+        if (!found){
+            TCPclients.add(new NameSocket(name, sc));
+            System.out.println("TCP client added");
+        }
+    }
 
+    private void addClient(String name, SocketAddress sa){
+        boolean found = false;
+        for (NameSocket ns : UDPclients){
+            if (ns.name.equals(name)){
+                found = true;
+                break;
+            }
+        }
+        if (!found){
+            UDPclients.add(new NameSocket(name, sa));
+            System.out.println("UDP client added");
+        }
     }
 
     public static void main(String args[]){
@@ -121,10 +153,16 @@ public class Server{
 
 class NameSocket{
     public String name;
-    public SocketAddress socket;
+    public SocketAddress socketA;
+    public SocketChannel socketC;
 
-    public NameSocket(String name, SocketAddress socket){
+    public NameSocket(String name, SocketAddress socketA){
         this.name = name;
-        this.socket = socket;
+        this.socketA = socketA;
+    }
+
+    public NameSocket(String name, SocketChannel socketC){
+        this.name = name;
+        this.socketC = socketC;
     }
 }

@@ -78,7 +78,7 @@ public class HostScene{
         try{
             //Change to desired address.
 
-            String packetString = "0," + playerName;
+            String packetString = playerName + ",0";
             ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
             tcp.write(buffer);
             searchString = "Searching for games...";
@@ -104,10 +104,10 @@ public class HostScene{
     //Search for tcp packets back from the server.
     private void runTCP(){
         System.out.println("Thread Made.");
+        //Keep searching while we are in this scene.
         while(hostScene){
             try{
                 ByteBuffer buffer = ByteBuffer.allocate(1024);
-                buffer.position(0);
                 tcp.read(buffer);
                 System.out.println(new String(buffer.array()).trim());
             }
