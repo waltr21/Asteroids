@@ -75,18 +75,43 @@ public class Server{
             tcp = ServerSocketChannel.open();
             tcp.bind(new InetSocketAddress(port));
             System.out.println("TCP Connection successful.");
+            SocketChannel sc = tcp.accept();
 
             //Continue to loop and search for packets.
             while(true){
-                SocketChannel sc = tcp.accept();
+                //SocketChannel sc = tcp.accept();
                 ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
                 sc.read(buffer);
-                System.out.println(new String(buffer.array()).trim());
+                String tempMessage = new String(buffer.array()).trim();
+                parseTCP(tempMessage, sc);
+                //System.out.println(tempMessage);
+
+
             }
         }
+        //Exceptions.
         catch(Exception e){
             System.out.println(e);
         }
+    }
+
+    public void parseTCP(String message, SocketChannel sc){
+        //Split message
+        String[] splitMessage = message.split(",");
+        //If we are working with an init connect packet.
+        if (splitMessage[0].equals("0")){
+            ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
+            buffer.position(0);
+            try{
+                System.out.println("Sent packet");
+                sc.write(buffer);
+            }
+            catch(Exception e){
+                System.out.println("bleg");
+            }
+        }
+
+
     }
 
     public static void main(String args[]){

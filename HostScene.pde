@@ -9,15 +9,14 @@ public class HostScene{
         threadMade = false;
         hostString = "Waiting for players...";
         searchString = "Searching for games...";
+
     }
 
     public void setSearch(){
-        hostBool = false;
-        searchBool = true;
-        sendSearchPacket();
-
         if (!threadMade){
             try{
+                tcp = SocketChannel.open();
+                tcp.connect(new InetSocketAddress(address, port));
                 Thread t = new Thread(new Runnable() {
                     public void run() {
                         runTCP();
@@ -30,6 +29,9 @@ public class HostScene{
                 System.out.println(e);
             }
         }
+        hostBool = false;
+        searchBool = true;
+        sendSearchPacket();
     }
 
     public void setHost(){
@@ -75,8 +77,7 @@ public class HostScene{
     private boolean sendSearchPacket(){
         try{
             //Change to desired address.
-            tcp = SocketChannel.open();
-            tcp.connect(new InetSocketAddress(address, port));
+
             String packetString = "0," + playerName;
             ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
             tcp.write(buffer);
@@ -106,6 +107,7 @@ public class HostScene{
         while(hostScene){
             try{
                 ByteBuffer buffer = ByteBuffer.allocate(1024);
+                buffer.position(0);
                 tcp.read(buffer);
                 System.out.println(new String(buffer.array()).trim());
             }

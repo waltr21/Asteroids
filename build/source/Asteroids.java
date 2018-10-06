@@ -429,24 +429,24 @@ public class GameScene{
     }
 }
 public class HostScene{
-    boolean searchBool, hostBool, threadMade;
+    boolean searchBool, hostBool, threadMade, hostScene;
     String hostString, searchString;
 
     public HostScene(){
         searchBool = false;
         hostBool = false;
+        hostScene = true;
+        threadMade = false;
         hostString = "Waiting for players...";
         searchString = "Searching for games...";
-        threadMade = false;
+
     }
 
     public void setSearch(){
-        hostBool = false;
-        searchBool = true;
-        sendSearchPacket();
-
         if (!threadMade){
             try{
+                tcp = SocketChannel.open();
+                tcp.connect(new InetSocketAddress(address, port));
                 Thread t = new Thread(new Runnable() {
                     public void run() {
                         runTCP();
@@ -459,6 +459,9 @@ public class HostScene{
                 System.out.println(e);
             }
         }
+        hostBool = false;
+        searchBool = true;
+        sendSearchPacket();
     }
 
     public void setHost(){
@@ -504,8 +507,7 @@ public class HostScene{
     private boolean sendSearchPacket(){
         try{
             //Change to desired address.
-            tcp = SocketChannel.open();
-            tcp.connect(new InetSocketAddress(address, port));
+
             String packetString = "0," + playerName;
             ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
             tcp.write(buffer);
@@ -529,12 +531,13 @@ public class HostScene{
         showSearchText();
     }
 
+    //Search for tcp packets back from the server.
     private void runTCP(){
-        // SocketChannel sc = tcp.accept();
         System.out.println("Thread Made.");
-        while(true){
+        while(hostScene){
             try{
                 ByteBuffer buffer = ByteBuffer.allocate(1024);
+                buffer.position(0);
                 tcp.read(buffer);
                 System.out.println(new String(buffer.array()).trim());
             }
@@ -545,8 +548,6 @@ public class HostScene{
             }
         }
     }
-
-
 }
 public class MenuButton{
     float x, y, w, h, scale, aWidth, speed;
