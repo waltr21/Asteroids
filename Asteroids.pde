@@ -6,12 +6,14 @@ import java.util.ArrayList;
 
 ArrayList<MenuButton> buttons;
 ArrayList<Asteroid> asteroids;
-MenuButton play, playOnline;
+MenuButton play, playOnline, netWork, search, host;
 int scene, level, port;
 Ship player;
 DatagramChannel udp;
 SocketChannel tcp;
-String address;
+String address, playerName;
+GameScene soloScene, onlineScene;
+HostScene hostScene;
 
 void setup(){
     size(900, 900, OPENGL);
@@ -27,29 +29,25 @@ void initScene(){
     scene = 0;
     level = 1;
     buttons = new ArrayList<MenuButton>();
+    address = "127.0.0.1";
+    port = 8765;
+
+    //Set up buttons
     play = new MenuButton(width/2, height/2 - 100, 2.5, "Solo", 0, 1);
-    play.setPrimary(51,51,51);
-    play.setSecondary(146,221,200);
-    playOnline = new MenuButton(width/2, height/2, 2.5, "Online", 0, 2);
-    playOnline.setPrimary(51,51,51);
-    playOnline.setSecondary(146,221,200);
-    asteroids = new ArrayList<Asteroid>();
-    resetAstroids(level);
+    playOnline = new MenuButton(width/2, height/2, 2.5, "Online", 0, 3);
+    search = new MenuButton(width/2 - 175, height/2 + 300, 2, "Search", 3, 4);
+    host = new MenuButton(width/2 + 175, height/2 + 300, 2, "Host", 3, 5);
     buttons.add(play);
     buttons.add(playOnline);
+    buttons.add(search);
+    buttons.add(host);
+    playerName = "SoCo";
 
-    try{
-        //Connnect to UDP
-        udp = DatagramChannel.open();
-        address = "127.0.0.1";
-        port = 8765;
-        //Connect to TCP
-        tcp = SocketChannel.open();
-        tcp.connect(new InetSocketAddress(address, port));
-    }
-    catch(Exception e){
-        System.out.println("Error in initScene: " + e);
-    }
+
+    asteroids = new ArrayList<Asteroid>();
+    soloScene = new GameScene(player, asteroids, false);
+    onlineScene = new GameScene(player, asteroids, true);
+    hostScene = new HostScene();
 
 }
 
@@ -62,10 +60,13 @@ void draw(){
             scene0();
             break;
         case 1:
-            scene1();
+            soloScene.show();
             break;
         case 2:
-            scene2();
+            onlineScene.show();
+            break;
+        case 3:
+            hostScene.show();
             break;
     }
     // fill(255);
@@ -82,105 +83,29 @@ void scene0(){
 }
 
 /**
- * Scene for the actual game.
- */
-void scene1(){
-    background(0);
-    showScene1Text();
-    if(!player.show()){
-        scene = 0;
-        return;
-    }
-    showAsteroids();
-    checkLevel();
-}
-
-void scene2(){
-    background(0);
-    showScene1Text();
-    if(!player.show()){
-        scene = 0;
-        return;
-    }
-    showAsteroids();
-    checkLevel();
-    try{
-        ByteBuffer buff = ByteBuffer.wrap("This is a test".getBytes());
-        //udp.send(buff, new InetSocketAddress(address, port));
-    }
-    catch(Exception e){
-        System.out.println("Error in sending coordinate packets: " + e);
-    }
-}
-
-void showScene1Text(){
-    String levelString = "Level " + level + "\n" + player.getScore();
-    fill(255);
-    text(levelString, width/2, 50);
-    String liveString = "";
-    for (int i = 0; i < player.getLives(); i++){
-        liveString += " | ";
-    }
-    text(liveString, 50, 50);
-}
-
-/**
- * Display all of the asteroids to the screen.
- */
-void showAsteroids(){
-    for (Asteroid a : asteroids){
-        a.show();
-    }
-}
-
-void resetAstroids(int level){
-    asteroids.clear();
-    int num = 2 + (level * 2) ;
-    for (int i = 0; i < num; i++){
-        float tempX = random(50, width - 50);
-        float tempY = random(50, height/2 - 150) + ((height/2 + 150) * int(random(0, 2)));
-        asteroids.add(new Asteroid(tempX, tempY, 3, player));
-        player.resetPos();
-    }
-}
-
-void checkLevel(){
-    if (asteroids.size() < 1){
-        level++;
-        resetAstroids(level);
-    }
-}
-
-void sendName(){
-    try{
-        String name = "Soco";
-        ByteBuffer b = ByteBuffer.wrap(name.getBytes());
-        tcp.write(b);
-    }
-    catch (Exception e){
-        System.out.println("Error in sending name: " + e);
-    }
-}
-
-void sendPackets(){
-
-}
-
-/**
  * Call the click buttons for the buttons when there is a mouse click.
  */
 void buttonsCLicked(){
     for (MenuButton mb : buttons){
         int tempScene = mb.setClicked(scene);
-        if (tempScene > 0){
+        if (tempScene >= 0){
+            if (tempScene == 5){
+                hostScene.setHost();
+                return;
+            }
+            else if (tempScene == 4){
+                hostScene.setSearch();
+                return;
+            }
+
+            if (tempScene == 1){
+                soloScene = new GameScene(player, asteroids, false);
+                System.out.println("hit");
+            }
+            else if (tempScene == 2){
+                onlineScene = new GameScene(player, asteroids, true);
+            }
             scene = tempScene;
-            if (tempScene == 1 || tempScene == 2){
-                level = 1;
-                resetAstroids(level);
-            }
-            if (tempScene == 2){
-                sendName();
-            }
         }
     }
 }
@@ -190,7 +115,7 @@ void buttonsCLicked(){
  */
 void mousePressed(){
     buttonsCLicked();
-    player.processClick();
+    //player.processClick();
 }
 
 /**
@@ -205,6 +130,4 @@ void keyReleased(){
  */
 void keyPressed(){
     player.processButtonPress(key);
-    if (key == 'r')
-        resetAstroids(level);
 }

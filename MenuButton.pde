@@ -25,8 +25,8 @@ public class MenuButton{
         this.speed = 12 * scale;
         this.w = 150 * scale;
         this.h = 23 * scale;
-        this.primary = color(0,0,0);
-        this.secondary = color(255, 255, 255);
+        this.primary = color(51,51,51);
+        this.secondary = color(146,221,200);
         this.clicked = false;
         this.hovered = false;
         this.animationFinished = false;
@@ -75,6 +75,7 @@ public class MenuButton{
         //If the mouse is over the button and we are in the current scene of the
         //button.
         if (isHovered() && s == currentScene){
+            aWidth = 0;
             return scene;
         }
         return -1;

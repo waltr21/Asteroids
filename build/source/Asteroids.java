@@ -3,6 +3,12 @@ import processing.data.*;
 import processing.event.*; 
 import processing.opengl.*; 
 
+import java.io.*; 
+import java.net.*; 
+import java.nio.*; 
+import java.nio.channels.*; 
+import java.util.ArrayList; 
+
 import java.util.HashMap; 
 import java.util.ArrayList; 
 import java.io.File; 
@@ -14,11 +20,22 @@ import java.io.IOException;
 
 public class Asteroids extends PApplet {
 
+
+
+
+
+
+
 ArrayList<MenuButton> buttons;
 ArrayList<Asteroid> asteroids;
-MenuButton play;
-int scene, level;
+MenuButton play, playOnline, netWork, search, host;
+int scene, level, port;
 Ship player;
+DatagramChannel udp;
+SocketChannel tcp;
+String address, playerName;
+GameScene soloScene, onlineScene;
+HostScene hostScene;
 
 public void setup(){
     
@@ -34,12 +51,26 @@ public void initScene(){
     scene = 0;
     level = 1;
     buttons = new ArrayList<MenuButton>();
+    address = "127.0.0.1";
+    port = 8765;
+
+    //Set up buttons
     play = new MenuButton(width/2, height/2 - 100, 2.5f, "Solo", 0, 1);
-    play.setPrimary(51,51,51);
-    play.setSecondary(146,221,200);
-    asteroids = new ArrayList<Asteroid>();
-    resetAstroids(level);
+    playOnline = new MenuButton(width/2, height/2, 2.5f, "Online", 0, 3);
+    search = new MenuButton(width/2 - 175, height/2 + 300, 2, "Search", 3, 4);
+    host = new MenuButton(width/2 + 175, height/2 + 300, 2, "Host", 3, 5);
     buttons.add(play);
+    buttons.add(playOnline);
+    buttons.add(search);
+    buttons.add(host);
+    playerName = "SoCo";
+
+
+    asteroids = new ArrayList<Asteroid>();
+    soloScene = new GameScene(player, asteroids, false);
+    onlineScene = new GameScene(player, asteroids, true);
+    hostScene = new HostScene();
+
 }
 
 /**
@@ -51,7 +82,13 @@ public void draw(){
             scene0();
             break;
         case 1:
-            scene1();
+            soloScene.show();
+            break;
+        case 2:
+            onlineScene.show();
+            break;
+        case 3:
+            hostScene.show();
             break;
     }
     // fill(255);
@@ -64,58 +101,7 @@ public void draw(){
 public void scene0(){
     background(51);
     play.show();
-}
-
-/**
- * Scene for the actual game.
- */
-public void scene1(){
-    background(0);
-    showScene1Text();
-    if(!player.show()){
-        scene = 0;
-        return;
-    }
-    showAsteroids();
-    checkLevel();
-}
-
-public void showScene1Text(){
-    String levelString = "Level " + level + "\n" + player.getScore();
-    fill(255);
-    text(levelString, width/2, 50);
-    String liveString = "";
-    for (int i = 0; i < player.getLives(); i++){
-        liveString += " | ";
-    }
-    text(liveString, 50, 50);
-}
-
-/**
- * Display all of the asteroids to the screen.
- */
-public void showAsteroids(){
-    for (Asteroid a : asteroids){
-        a.show();
-    }
-}
-
-public void resetAstroids(int level){
-    asteroids.clear();
-    int num = 2 + (level * 2) ;
-    for (int i = 0; i < num; i++){
-        float tempX = random(50, width - 50);
-        float tempY = random(50, height/2 - 150) + ((height/2 + 150) * PApplet.parseInt(random(0, 2)));
-        asteroids.add(new Asteroid(tempX, tempY, 3, player));
-        player.resetPos();
-    }
-}
-
-public void checkLevel(){
-    if (asteroids.size() < 1){
-        level++;
-        resetAstroids(level);
-    }
+    playOnline.show();
 }
 
 /**
@@ -124,12 +110,24 @@ public void checkLevel(){
 public void buttonsCLicked(){
     for (MenuButton mb : buttons){
         int tempScene = mb.setClicked(scene);
-        if (tempScene > 0){
-            scene = tempScene;
-            if (tempScene == 1){
-                level = 1;
-                resetAstroids(level);
+        if (tempScene >= 0){
+            if (tempScene == 5){
+                hostScene.setHost();
+                return;
             }
+            else if (tempScene == 4){
+                hostScene.setSearch();
+                return;
+            }
+
+            if (tempScene == 1){
+                soloScene = new GameScene(player, asteroids, false);
+                System.out.println("hit");
+            }
+            else if (tempScene == 2){
+                onlineScene = new GameScene(player, asteroids, true);
+            }
+            scene = tempScene;
         }
     }
 }
@@ -139,7 +137,7 @@ public void buttonsCLicked(){
  */
 public void mousePressed(){
     buttonsCLicked();
-    player.processClick();
+    //player.processClick();
 }
 
 /**
@@ -154,8 +152,6 @@ public void keyReleased(){
  */
 public void keyPressed(){
     player.processButtonPress(key);
-    if (key == 'r')
-        resetAstroids(level);
 }
 public class Asteroid{
     float x, y, size;
@@ -178,7 +174,7 @@ public class Asteroid{
         this.maxLevel = 3;
         this.p = p;
         this.velocity = PVector.fromAngle(random(-PI, PI));
-        this.velocity.mult(((maxLevel+1) - level) * 0.5f);
+        this.velocity.mult(((maxLevel+1) - level) * 0.8f);
     }
 
 
@@ -229,11 +225,11 @@ public class Asteroid{
 
     public int getScore(){
         if (level == 1)
-            return 50;
+            return 100;
         else if (level == 2)
-            return 25;
+            return 50;
         else
-            return 10;
+            return 20;
 
     }
 
@@ -264,6 +260,7 @@ public class Asteroid{
 }
 public class Bullet{
     float x, y, angle, size;
+    int count;
     PVector velocity;
     Ship p;
 
@@ -272,6 +269,7 @@ public class Bullet{
         this.y = y;
         this.angle = angle - PI/2;
         this.size = 5;
+        this.count = 0;
         this.p = p;
         this.velocity = PVector.fromAngle(this.angle);
         this.velocity.mult(8);
@@ -284,20 +282,26 @@ public class Bullet{
 
     public boolean bound(){
         if (x + size < 0){
-            return true;
+            x = width + size;
         }
         else if (x - size > width){
-            return true;
+            x = 0 - size;
         }
 
         if (y + size < 0){
-            return true;
+            y = height + size;
         }
         else if (y - size > height){
-            return true;
+            y = 0 - size;
         }
 
-        return false;
+        if(count > 900){
+            return true;
+        }
+        else{
+            count += 8;
+            return false;
+        }
     }
 
     public void checkHit(){
@@ -306,7 +310,7 @@ public class Bullet{
             if (distance < a.getSize()/2){
                 p.addScore(a.getScore());
                 a.explode();
-                x = width + 200;
+                count = 1000;
                 break;
             }
         }
@@ -331,6 +335,217 @@ public class Bullet{
     public float getY(){
         return y;
     }
+
+}
+public class GameScene{
+    Ship player;
+    ArrayList<Asteroid> asteroids;
+    boolean online;
+
+    public GameScene(Ship player, ArrayList<Asteroid> asteroids, boolean online){
+        this.player = player;
+        this.asteroids = asteroids;
+        this.online = online;
+        level = 1;
+        resetAstroids(level);
+    }
+
+    /**
+     * Show the text of the scene
+     */
+    private void showText(){
+        String levelString = "Level " + level + "\n" + player.getScore();
+        fill(255);
+        text(levelString, width/2, 50);
+        String liveString = "";
+        for (int i = 0; i < player.getLives(); i++){
+            liveString += " | ";
+        }
+        text(liveString, 50, 50);
+    }
+
+    private void resetAstroids(int level){
+        asteroids.clear();
+        int num = 2 + (level * 2) ;
+        for (int i = 0; i < num; i++){
+            float tempX = random(50, width - 50);
+            float tempY = random(50, height/2 - 150) + ((height/2 + 150) * PApplet.parseInt(random(0, 2)));
+            asteroids.add(new Asteroid(tempX, tempY, 3, player));
+            player.resetPos();
+            player.clearBullets();
+        }
+    }
+
+    /**
+     * Display all of the asteroids to the screen.
+     */
+    private void showAsteroids(){
+        for (Asteroid a : asteroids){
+            a.show();
+        }
+    }
+
+    private void checkLevel(){
+        if (asteroids.size() < 1){
+            level++;
+            resetAstroids(level);
+        }
+    }
+
+    private void sendName(){
+        try{
+            String name = "Soco";
+            ByteBuffer b = ByteBuffer.wrap(name.getBytes());
+            tcp.write(b);
+        }
+        catch (Exception e){
+            System.out.println("Error in sending name: " + e);
+        }
+    }
+
+    private void sendPackets(){
+        try{
+            ByteBuffer buff = ByteBuffer.wrap("This is a test".getBytes());
+            //udp.send(buff, new InetSocketAddress(address, port));
+        }
+        catch(Exception e){
+            System.out.println("Error in sending coordinate packets: " + e);
+        }
+    }
+
+    public void show(){
+        background(0);
+        showText();
+        if(!player.show()){
+            scene = 0;
+            return;
+        }
+        showAsteroids();
+        checkLevel();
+
+        if (online){
+            sendPackets();
+        }
+    }
+}
+public class HostScene{
+    boolean searchBool, hostBool, threadMade;
+    String hostString, searchString;
+
+    public HostScene(){
+        searchBool = false;
+        hostBool = false;
+        hostString = "Waiting for players...";
+        searchString = "Searching for games...";
+        threadMade = false;
+    }
+
+    public void setSearch(){
+        hostBool = false;
+        searchBool = true;
+        sendSearchPacket();
+
+        if (!threadMade){
+            try{
+                Thread t = new Thread(new Runnable() {
+                    public void run() {
+                        runTCP();
+                    }
+                });
+                t.start();
+                threadMade = true;
+            }
+            catch(Exception e){
+                System.out.println(e);
+            }
+        }
+    }
+
+    public void setHost(){
+        hostBool = true;
+        searchBool = false;
+        address = "127.0.0.1";
+        sendInitPacket();
+    }
+
+    private void showHostText(){
+        if (hostBool){
+            fill(146,221,200);
+            textAlign(CENTER);
+            text(hostString, width/2, 100);
+        }
+    }
+
+    private void showSearchText(){
+        if (searchBool){
+            fill(146,221,200);
+            textAlign(CENTER);
+            text(searchString, width/2, 100);
+        }
+    }
+
+    private boolean sendInitPacket(){
+        try{
+            // //Connnect to UDP
+            udp = DatagramChannel.open();
+
+            //Connect to TCP
+            hostString = "Waiting for players...";
+            return true;
+        }
+        catch(Exception e){
+            System.out.println("Error in sendInitPacket " + e);
+            hostString = "Waiting for players...";
+            hostString += ("\n\nError connecting to local server. You probably didn't open the server.");
+            return false;
+        }
+    }
+
+    private boolean sendSearchPacket(){
+        try{
+            //Change to desired address.
+            tcp = SocketChannel.open();
+            tcp.connect(new InetSocketAddress(address, port));
+            String packetString = "0," + playerName;
+            ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
+            tcp.write(buffer);
+            searchString = "Searching for games...";
+        }
+        catch(Exception e){
+            System.out.println("Error in sendSearchPacket " + e);
+            searchString = "Searching for games...";
+            searchString += ("\n\nError connecting to server. IP adress is probably wrong.");
+            return false;
+        }
+        searchString += "\n\nConnection successful!";
+        return true;
+    }
+
+    public void show(){
+        background(51);
+        search.show();
+        showHostText();
+        host.show();
+        showSearchText();
+    }
+
+    private void runTCP(){
+        // SocketChannel sc = tcp.accept();
+        System.out.println("Thread Made.");
+        while(true){
+            try{
+                ByteBuffer buffer = ByteBuffer.allocate(1024);
+                tcp.read(buffer);
+                System.out.println(new String(buffer.array()).trim());
+            }
+            catch(Exception e){
+                System.out.println(e);
+                threadMade = false;
+                break;
+            }
+        }
+    }
+
 
 }
 public class MenuButton{
@@ -360,8 +575,8 @@ public class MenuButton{
         this.speed = 12 * scale;
         this.w = 150 * scale;
         this.h = 23 * scale;
-        this.primary = color(0,0,0);
-        this.secondary = color(255, 255, 255);
+        this.primary = color(51,51,51);
+        this.secondary = color(146,221,200);
         this.clicked = false;
         this.hovered = false;
         this.animationFinished = false;
@@ -410,6 +625,7 @@ public class MenuButton{
         //If the mouse is over the button and we are in the current scene of the
         //button.
         if (isHovered() && s == currentScene){
+            aWidth = 0;
             return scene;
         }
         return -1;
@@ -537,6 +753,7 @@ public class Ship{
      * @param k key entered by the user.
      */
     private void setTurn(char k){
+        //System.out.println("Turn");
         turn = true;
         this.k = Character.toLowerCase(k);
         pressedChars.add(this.k);
@@ -547,7 +764,7 @@ public class Ship{
      */
     private void turn(){
         //Make sure we are in the scene and we should be turning.
-        if (scene == 1 && turn){
+        if (turn){
             if (k == 'a'){
                 angle -= turnRadius;
             }
@@ -587,6 +804,11 @@ public class Ship{
         lives = maxLives;
         dead = false;
         score = 0;
+        bullets.clear();
+    }
+
+    public void clearBullets(){
+        bullets.clear();
     }
 
     /**
@@ -598,6 +820,11 @@ public class Ship{
 
         //Adds "friction" to slow down the ship.
         velocity.mult(0.99f);
+    }
+
+    private void hyperDrive(){
+        x = random(20, width - 20);
+        y = random(20, height - 20);
     }
 
     /**
@@ -642,7 +869,7 @@ public class Ship{
 
     private void checkNoHit(){
         if(noHit){
-            if (millis() - timeStamp > 5000)
+            if (millis() - timeStamp > 3000)
                 noHit = false;
         }
     }
@@ -696,6 +923,7 @@ public class Ship{
      * @param k key entered by the user.
      */
     public void processButtonPress(char k){
+
         k = Character.toLowerCase(k);
         if (k == 'a' || k == 'd'){
             setTurn(k);
@@ -707,6 +935,10 @@ public class Ship{
 
         if (k == ' '){
             shoot();
+        }
+
+        if (k == '\n'){
+            hyperDrive();
         }
     }
 
@@ -748,13 +980,13 @@ public class Ship{
         return score;
     }
 }
-  public void settings() {  size(900, 900, OPENGL); }
-  static public void main(String[] passedArgs) {
-    String[] appletArgs = new String[] { "Asteroids" };
-    if (passedArgs != null) {
-      PApplet.main(concat(appletArgs, passedArgs));
-    } else {
-      PApplet.main(appletArgs);
+    public void settings() {  size(900, 900, OPENGL); }
+    static public void main(String[] passedArgs) {
+        String[] appletArgs = new String[] { "Asteroids" };
+        if (passedArgs != null) {
+          PApplet.main(concat(appletArgs, passedArgs));
+        } else {
+          PApplet.main(appletArgs);
+        }
     }
-  }
 }

@@ -1,5 +1,6 @@
 public class Bullet{
     float x, y, angle, size;
+    int count;
     PVector velocity;
     Ship p;
 
@@ -8,6 +9,7 @@ public class Bullet{
         this.y = y;
         this.angle = angle - PI/2;
         this.size = 5;
+        this.count = 0;
         this.p = p;
         this.velocity = PVector.fromAngle(this.angle);
         this.velocity.mult(8);
@@ -20,20 +22,26 @@ public class Bullet{
 
     public boolean bound(){
         if (x + size < 0){
-            return true;
+            x = width + size;
         }
         else if (x - size > width){
-            return true;
+            x = 0 - size;
         }
 
         if (y + size < 0){
-            return true;
+            y = height + size;
         }
         else if (y - size > height){
-            return true;
+            y = 0 - size;
         }
 
-        return false;
+        if(count > 900){
+            return true;
+        }
+        else{
+            count += 8;
+            return false;
+        }
     }
 
     public void checkHit(){
@@ -42,7 +50,7 @@ public class Bullet{
             if (distance < a.getSize()/2){
                 p.addScore(a.getScore());
                 a.explode();
-                x = width + 200;
+                count = 1000;
                 break;
             }
         }
