@@ -1,6 +1,7 @@
 public class HostScene{
     boolean searchBool, hostBool, threadMade, hostScene;
     String hostString, searchString, allClients;
+    ArrayList<String> clientList;
 
     public HostScene(){
         searchBool = false;
@@ -10,6 +11,7 @@ public class HostScene{
         hostString = "Waiting for players...";
         searchString = "Searching for games...";
         allClients = "";
+        clientList = new ArrayList<String>();
     }
 
     public void setSearch(){
@@ -129,7 +131,7 @@ public class HostScene{
                 ByteBuffer buffer = ByteBuffer.allocate(1024);
                 tcp.read(buffer);
                 String temp = new String (buffer.array()).trim();
-                System.out.println(new String(buffer.array()).trim());
+                //System.out.println(new String(buffer.array()).trim());
                 procesTCP(temp);
             }
             catch(Exception e){
@@ -143,8 +145,23 @@ public class HostScene{
     private void procesTCP(String packet){
         String[] splitMessage = packet.split(",");
         if (splitMessage[1].equals("0") && hostBool){
-            allClients += splitMessage[0] + "\n";
+            addClient(splitMessage[0]);
             hostString = "Waiting for players...\n" + allClients;
+        }
+    }
+
+    private void addClient(String name){
+        boolean found = false;
+        for (String temp : clientList){
+            if (name.equals(name)){
+                found = true;
+                break;
+            }
+        }
+
+        if (!found){
+            allClients += name;
+            clientList.add(name);
         }
     }
 }

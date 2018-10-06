@@ -108,13 +108,7 @@ public class Server{
         //If we are working with an init connect packet.
         if (splitMessage[1].equals("0")){
             ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
-            try{
-                System.out.println("Sent packet");
-                sc.write(buffer);
-            }
-            catch(Exception e){
-                System.out.println(e);
-            }
+            sendAllTCP(name, buffer);
         }
     }
 
@@ -128,7 +122,7 @@ public class Server{
         }
         if (!found){
             TCPclients.add(new NameSocket(name, sc));
-            System.out.println("TCP client added");
+            System.out.println("TCP client added: " + name);
         }
     }
 
@@ -142,7 +136,21 @@ public class Server{
         }
         if (!found){
             UDPclients.add(new NameSocket(name, sa));
-            System.out.println("UDP client added");
+            System.out.println("UDP client added: " + name);
+        }
+    }
+
+    private void sendAllTCP(String name, ByteBuffer buffer){
+        for (NameSocket ns : TCPclients){
+            if (!ns.name.equals(name)){
+                try{
+                    System.out.println("Sent packet");
+                    ns.socketC.write(buffer);
+                }
+                catch(Exception e){
+                    System.out.println(e);
+                }
+            }
         }
     }
 

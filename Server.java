@@ -122,7 +122,7 @@ public class Server{
         }
         if (!found){
             TCPclients.add(new NameSocket(name, sc));
-            System.out.println("TCP client added");
+            System.out.println("TCP client added: " + name);
         }
     }
 
@@ -136,7 +136,7 @@ public class Server{
         }
         if (!found){
             UDPclients.add(new NameSocket(name, sa));
-            System.out.println("UDP client added");
+            System.out.println("UDP client added: " + name);
         }
     }
 
@@ -145,7 +145,7 @@ public class Server{
             if (!ns.name.equals(name)){
                 try{
                     System.out.println("Sent packet");
-                    sc.write(buffer);
+                    ns.socketC.write(buffer);
                 }
                 catch(Exception e){
                     System.out.println(e);

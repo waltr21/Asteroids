@@ -65,7 +65,6 @@ public void initScene(){
     buttons.add(host);
     playerName = "SoCo";
 
-
     asteroids = new ArrayList<Asteroid>();
     soloScene = new GameScene(player, asteroids, false);
     onlineScene = new GameScene(player, asteroids, true);
@@ -430,7 +429,8 @@ public class GameScene{
 }
 public class HostScene{
     boolean searchBool, hostBool, threadMade, hostScene;
-    String hostString, searchString;
+    String hostString, searchString, allClients;
+    ArrayList<String> clientList;
 
     public HostScene(){
         searchBool = false;
@@ -439,6 +439,8 @@ public class HostScene{
         threadMade = false;
         hostString = "Waiting for players...";
         searchString = "Searching for games...";
+        allClients = "";
+        clientList = new ArrayList<String>();
     }
 
     public void setSearch(){
@@ -464,6 +466,23 @@ public class HostScene{
     }
 
     public void setHost(){
+        if (!threadMade){
+            try{
+                tcp = SocketChannel.open();
+                tcp.connect(new InetSocketAddress(address, port));
+                Thread t = new Thread(new Runnable() {
+                    public void run() {
+                        runTCP();
+                    }
+                });
+                t.start();
+                threadMade = true;
+            }
+            catch(Exception e){
+                System.out.println(e);
+            }
+        }
+
         hostBool = true;
         searchBool = false;
         address = "127.0.0.1";
@@ -489,9 +508,12 @@ public class HostScene{
     private boolean sendHostPacket(){
         try{
             // //Connnect to UDP
-            udp = DatagramChannel.open();
+            //udp = DatagramChannel.open();
 
             //Connect to TCP
+            String packetString = playerName + ",1";
+            ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
+            tcp.write(buffer);
             hostString = "Waiting for players...";
             return true;
         }
@@ -514,8 +536,7 @@ public class HostScene{
         }
         catch(Exception e){
             System.out.println("Error in sendSearchPacket " + e);
-            searchString = "Searching for games...";
-            searchString += ("\n\nError connecting to server. IP adress is probably wrong.");
+            searchString = ("Error connecting to server. IP adress is probably wrong.");
             return false;
         }
         searchString = "Game found! Waiting for host to start.";
@@ -538,13 +559,38 @@ public class HostScene{
             try{
                 ByteBuffer buffer = ByteBuffer.allocate(1024);
                 tcp.read(buffer);
-                System.out.println(new String(buffer.array()).trim());
+                String temp = new String (buffer.array()).trim();
+                //System.out.println(new String(buffer.array()).trim());
+                procesTCP(temp);
             }
             catch(Exception e){
                 System.out.println(e);
                 threadMade = false;
                 break;
             }
+        }
+    }
+
+    private void procesTCP(String packet){
+        String[] splitMessage = packet.split(",");
+        if (splitMessage[1].equals("0") && hostBool){
+            addClient(splitMessage[0]);
+            hostString = "Waiting for players...\n" + allClients;
+        }
+    }
+
+    private void addClient(String name){
+        boolean found = false;
+        for (String temp : clientList){
+            if (name.equals(name)){
+                found = true;
+                break;
+            }
+        }
+
+        if (!found){
+            allClients += name;
+            clientList.add(name);
         }
     }
 }
