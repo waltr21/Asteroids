@@ -9,7 +9,6 @@ public class HostScene{
         threadMade = false;
         hostString = "Waiting for players...";
         searchString = "Searching for games...";
-        allClients = "";
     }
 
     public void setSearch(){
@@ -141,10 +140,6 @@ public class HostScene{
     }
 
     private void procesTCP(String packet){
-        String[] splitMessage = packet.split(",");
-        if (splitMessage[1].equals("0") && hostBool){
-            allClients += splitMessage[0] + "\n";
-            hostString = "Waiting for players...\n" + allClients;
-        }
+
     }
 }
