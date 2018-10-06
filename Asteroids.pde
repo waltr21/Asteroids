@@ -43,7 +43,6 @@ void initScene(){
     buttons.add(host);
     playerName = "SoCo";
 
-
     asteroids = new ArrayList<Asteroid>();
     soloScene = new GameScene(player, asteroids, false);
     onlineScene = new GameScene(player, asteroids, true);

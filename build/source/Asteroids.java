@@ -439,7 +439,6 @@ public class HostScene{
         threadMade = false;
         hostString = "Waiting for players...";
         searchString = "Searching for games...";
-
     }
 
     public void setSearch(){
@@ -468,7 +467,7 @@ public class HostScene{
         hostBool = true;
         searchBool = false;
         address = "127.0.0.1";
-        sendInitPacket();
+        sendHostPacket();
     }
 
     private void showHostText(){
@@ -487,7 +486,7 @@ public class HostScene{
         }
     }
 
-    private boolean sendInitPacket(){
+    private boolean sendHostPacket(){
         try{
             // //Connnect to UDP
             udp = DatagramChannel.open();
@@ -519,7 +518,7 @@ public class HostScene{
             searchString += ("\n\nError connecting to server. IP adress is probably wrong.");
             return false;
         }
-        searchString += "\n\nConnection successful!";
+        searchString = "Game found! Waiting for host to start.";
         return true;
     }
 

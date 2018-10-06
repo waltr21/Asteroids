@@ -155,14 +155,17 @@ class NameSocket{
     public String name;
     public SocketAddress socketA;
     public SocketChannel socketC;
+    public boolean host;
 
     public NameSocket(String name, SocketAddress socketA){
         this.name = name;
         this.socketA = socketA;
+        this.host = false;
     }
 
     public NameSocket(String name, SocketChannel socketC){
         this.name = name;
         this.socketC = socketC;
+        this.host = false;
     }
 }
