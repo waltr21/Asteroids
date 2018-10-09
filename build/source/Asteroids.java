@@ -28,7 +28,7 @@ public class Asteroids extends PApplet {
 
 ArrayList<MenuButton> buttons;
 ArrayList<Asteroid> asteroids;
-MenuButton play, playOnline, network, search, host;
+MenuButton play, playOnline, network, search, host, menu;
 TextBox nameBox, addressBox, portBox;
 int scene, level, port;
 Ship player;
@@ -64,12 +64,14 @@ public void initScene(){
     search = new MenuButton(width/2 - 175, height/2 + 300, 2, "Search", 3, 4);
     host = new MenuButton(width/2 + 175, height/2 + 300, 2, "Host", 3, 5);
     network = new MenuButton(width/2, height/2 + 100, 2.5f, "Network", 0, 6);
+    menu = new MenuButton(width/2, height/2 + 300, 2.5f, "Menu", 6, 0);
 
     buttons.add(play);
     buttons.add(playOnline);
     buttons.add(search);
     buttons.add(host);
     buttons.add(network);
+    buttons.add(menu);
 
     nameBox = new TextBox(width/2, height/2 - 100, 3);
     nameBox.setText(playerName);
@@ -154,6 +156,10 @@ public void buttonsCLicked(){
                 return;
             }
 
+            if (tempScene == 2){
+                hostScene.sendStartPacket();
+            }
+
             if (tempScene == 1){
                 soloScene = new GameScene(player, asteroids, false);
                 System.out.println("hit");
@@ -189,11 +195,11 @@ public void keyReleased(){
  */
 public void keyPressed(){
     player.processButtonPress(key);
-    nameBox.processKey(keyCode);
-    addressBox.processKey(keyCode);
-    portBox.processKey(keyCode);
-
-
+    if (scene == 6){
+        nameBox.processKey(keyCode);
+        addressBox.processKey(keyCode);
+        portBox.processKey(keyCode);
+    }
 }
 public class Asteroid{
     float x, y, size;
@@ -531,10 +537,6 @@ public class HostScene{
             }
         }
 
-        if (hostBool && !error){
-            sendStartPacket();
-            //Give online the players.
-        }
         hostBool = true;
         searchBool = false;
         address = "127.0.0.1";
@@ -595,12 +597,17 @@ public class HostScene{
         return true;
     }
 
-    private void sendStartPacket(){
+    public void sendStartPacket(){
         try{
+            System.out.println("Sent start");
             String packetString = playerName + ",2," + clientList.size();
             ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
+            host.setText("Host");
+            host.setScene(5);
+            hostBool = false;
+            searchBool = true;
             tcp.write(buffer);
-            System.out.println("Sent start");
+            //System.out.println("Sent start");
         }
         catch(Exception e){
             System.out.println("Error in sendStartPacket " + e);
@@ -744,6 +751,7 @@ public class MenuButton{
         //button.
         if (isHovered() && s == currentScene){
             aWidth = 0;
+            cursor(ARROW);
             return scene;
         }
         return -1;
@@ -838,6 +846,7 @@ public class NetworkScene{
         nameBox.show();
         addressBox.show();
         portBox.show();
+        menu.show();
     }
 }
 public class Ship{
@@ -1209,11 +1218,11 @@ public class TextBox{
         float difference = ((textWidth(text)/2) + 8 + x) - blinkX;
         //System.out.println(difference);
 
-        if (difference > 3){
+        if (difference >= 3){
             blinkX += 3;
             blink = true;
         }
-        else if (difference < -3){
+        else if (difference <= -3){
             blinkX -= 3;
             blink = true;
         }
@@ -1234,14 +1243,15 @@ public class TextBox{
                 if (code >= 48 && code <= 57){
                     text += (char) code;
                 }
+                if ((code == 32 || code == 46) && !isInt){
+                    text += (char) code;
+                }
             }
             if (code == 8){
                 if (text.length() >= 1)
                     text = text.substring(0, text.length() - 1);
             }
-            if ((code == 32 || code == 46) && !isInt){
-                text += (char) code;
-            }
+
             if (code == 10){
                 //For the port
                 if (isInt){

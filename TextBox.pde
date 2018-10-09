@@ -79,11 +79,11 @@ public class TextBox{
         float difference = ((textWidth(text)/2) + 8 + x) - blinkX;
         //System.out.println(difference);
 
-        if (difference > 3){
+        if (difference >= 3){
             blinkX += 3;
             blink = true;
         }
-        else if (difference < -3){
+        else if (difference <= -3){
             blinkX -= 3;
             blink = true;
         }
@@ -104,14 +104,15 @@ public class TextBox{
                 if (code >= 48 && code <= 57){
                     text += (char) code;
                 }
+                if ((code == 32 || code == 46) && !isInt){
+                    text += (char) code;
+                }
             }
             if (code == 8){
                 if (text.length() >= 1)
                     text = text.substring(0, text.length() - 1);
             }
-            if ((code == 32 || code == 46) && !isInt){
-                text += (char) code;
-            }
+
             if (code == 10){
                 //For the port
                 if (isInt){

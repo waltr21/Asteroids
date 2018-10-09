@@ -10,5 +10,6 @@ public class NetworkScene{
         nameBox.show();
         addressBox.show();
         portBox.show();
+        menu.show();
     }
 }

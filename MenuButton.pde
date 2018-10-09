@@ -76,6 +76,7 @@ public class MenuButton{
         //button.
         if (isHovered() && s == currentScene){
             aWidth = 0;
+            cursor(ARROW);
             return scene;
         }
         return -1;

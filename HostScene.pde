@@ -59,10 +59,6 @@ public class HostScene{
             }
         }
 
-        if (hostBool && !error){
-            sendStartPacket();
-            //Give online the players.
-        }
         hostBool = true;
         searchBool = false;
         address = "127.0.0.1";
@@ -123,12 +119,17 @@ public class HostScene{
         return true;
     }
 
-    private void sendStartPacket(){
+    public void sendStartPacket(){
         try{
+            System.out.println("Sent start");
             String packetString = playerName + ",2," + clientList.size();
             ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
+            host.setText("Host");
+            host.setScene(5);
+            hostBool = false;
+            searchBool = true;
             tcp.write(buffer);
-            System.out.println("Sent start");
+            //System.out.println("Sent start");
         }
         catch(Exception e){
             System.out.println("Error in sendStartPacket " + e);
