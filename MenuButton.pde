@@ -122,6 +122,22 @@ public class MenuButton{
     }
 
     /**
+     * Set the scene to a different value.
+     * @param s Scene number
+     */
+    public void setScene(int s){
+        scene = s;
+    }
+
+    /**
+     * Set the button text to a differnt value
+     * @param s String val
+     */
+    public void setText(String s){
+        text = s;
+    }
+
+    /**
      * Check to see if the mouse is hovered over the button.
      * @return [description]
      */

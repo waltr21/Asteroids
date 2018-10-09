@@ -106,7 +106,7 @@ public class Server{
         String name = splitMessage[0];
         addClient(name, sc);
         //If we are working with an init connect packet.
-        if (splitMessage[1].equals("0")){
+        if (splitMessage[1].equals("0") || splitMessage[1].equals("2")){
             ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
             sendAllTCP(name, buffer);
         }

@@ -1,5 +1,5 @@
 public class HostScene{
-    boolean searchBool, hostBool, threadMade, hostScene;
+    boolean searchBool, hostBool, threadMade, hostScene, error;
     String hostString, searchString, allClients;
     ArrayList<String> clientList;
 
@@ -8,6 +8,7 @@ public class HostScene{
         hostBool = false;
         hostScene = true;
         threadMade = false;
+        error = false;
         hostString = "Waiting for players...";
         searchString = "Searching for games...";
         allClients = "";
@@ -17,6 +18,7 @@ public class HostScene{
     public void setSearch(){
         if (!threadMade){
             try{
+                udp = DatagramChannel.open();
                 tcp = SocketChannel.open();
                 tcp.connect(new InetSocketAddress(address, port));
                 Thread t = new Thread(new Runnable() {
@@ -31,6 +33,8 @@ public class HostScene{
                 System.out.println(e);
             }
         }
+        host.setText("Host");
+        host.setScene(5);
         hostBool = false;
         searchBool = true;
         sendSearchPacket();
@@ -39,6 +43,7 @@ public class HostScene{
     public void setHost(){
         if (!threadMade){
             try{
+                udp = DatagramChannel.open();
                 tcp = SocketChannel.open();
                 tcp.connect(new InetSocketAddress(address, port));
                 Thread t = new Thread(new Runnable() {
@@ -54,10 +59,18 @@ public class HostScene{
             }
         }
 
+        if (hostBool && !error){
+            sendStartPacket();
+            //Give online the players.
+        }
         hostBool = true;
         searchBool = false;
         address = "127.0.0.1";
         sendHostPacket();
+        if (!error){
+            host.setText("Start");
+            host.setScene(2);
+        }
     }
 
     private void showHostText(){
@@ -78,28 +91,24 @@ public class HostScene{
 
     private boolean sendHostPacket(){
         try{
-            // //Connnect to UDP
-            //udp = DatagramChannel.open();
-
             //Connect to TCP
             String packetString = playerName + ",1";
             ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
             tcp.write(buffer);
             hostString = "Waiting for players...";
-            return true;
         }
         catch(Exception e){
             System.out.println("Error in sendInitPacket " + e);
-            hostString = "Waiting for players...";
-            hostString += ("\n\nError connecting to local server. You probably didn't open the server.");
+            hostString = ("\n\nError connecting to local server. You probably didn't open the server.");
+            error = true;
             return false;
         }
+        error = false;
+        return true;
     }
 
     private boolean sendSearchPacket(){
         try{
-            //Change to desired address.
-
             String packetString = playerName + ",0";
             ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
             tcp.write(buffer);
@@ -112,6 +121,18 @@ public class HostScene{
         }
         searchString = "Game found! Waiting for host to start.";
         return true;
+    }
+
+    private void sendStartPacket(){
+        try{
+            String packetString = playerName + ",2," + clientList.size();
+            ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
+            tcp.write(buffer);
+            System.out.println("Sent start");
+        }
+        catch(Exception e){
+            System.out.println("Error in sendStartPacket " + e);
+        }
     }
 
     public void show(){
@@ -131,8 +152,8 @@ public class HostScene{
                 ByteBuffer buffer = ByteBuffer.allocate(1024);
                 tcp.read(buffer);
                 String temp = new String (buffer.array()).trim();
-                //System.out.println(new String(buffer.array()).trim());
-                procesTCP(temp);
+                // System.out.println("new String(buffer.array()).trim()");
+                processTCP(temp);
             }
             catch(Exception e){
                 System.out.println(e);
@@ -142,11 +163,19 @@ public class HostScene{
         }
     }
 
-    private void procesTCP(String packet){
+    private void processTCP(String packet){
         String[] splitMessage = packet.split(",");
         if (splitMessage[1].equals("0") && hostBool){
             addClient(splitMessage[0]);
             hostString = "Waiting for players...\n" + allClients;
+        }
+        if (splitMessage[1].equals("2")){
+            System.out.println(splitMessage[2]);
+            scene = 2;
+            host.setText("Host");
+            host.setScene(5);
+            clientList.clear();
+            allClients = "";
         }
     }
 

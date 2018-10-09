@@ -6,8 +6,7 @@ import java.util.ArrayList;
 
 ArrayList<MenuButton> buttons;
 ArrayList<Asteroid> asteroids;
-MenuButton play, playOnline, network, search, host;
-TextBox nameBox, addressBox, portBox;
+MenuButton play, playOnline, netWork, search, host;
 int scene, level, port;
 Ship player;
 DatagramChannel udp;
@@ -15,7 +14,6 @@ SocketChannel tcp;
 String address, playerName;
 GameScene soloScene, onlineScene;
 HostScene hostScene;
-NetworkScene networkScene;
 
 void setup(){
     size(900, 900, OPENGL);
@@ -27,8 +25,6 @@ void setup(){
  */
 void initScene(){
     frameRate(60);
-    loadData();
-
     player = new Ship();
     scene = 0;
     level = 1;
@@ -41,44 +37,17 @@ void initScene(){
     playOnline = new MenuButton(width/2, height/2, 2.5, "Online", 0, 3);
     search = new MenuButton(width/2 - 175, height/2 + 300, 2, "Search", 3, 4);
     host = new MenuButton(width/2 + 175, height/2 + 300, 2, "Host", 3, 5);
-    network = new MenuButton(width/2, height/2 + 100, 2.5, "Network", 0, 6);
-
     buttons.add(play);
     buttons.add(playOnline);
     buttons.add(search);
     buttons.add(host);
-    buttons.add(network);
-
-    nameBox = new TextBox(width/2, height/2 - 100, 3);
-    nameBox.setText(playerName);
-    nameBox.setLimit(5);
-
-    addressBox = new TextBox(width/2, height/2, 3);
-    addressBox.setText(address);
-
-    portBox = new TextBox(width/2, height/2 + 100, 3);
-    portBox.setText(port + "");
-    portBox.setInt();
-    portBox.setLimit(6);
+    playerName = "Walt";
 
     asteroids = new ArrayList<Asteroid>();
     soloScene = new GameScene(player, asteroids, false);
     onlineScene = new GameScene(player, asteroids, true);
     hostScene = new HostScene();
-    networkScene = new NetworkScene();
-}
 
-void loadData(){
-    String[] data = loadStrings("Network.txt");
-    if (data == null){
-        String[] tempData = {"Temp", "127.0.0.1", "8765"};
-        saveStrings("Network.txt", tempData);
-        data = loadStrings("Network.txt");
-    }
-
-    playerName = data[0];
-    address = data[1];
-    port = Integer.parseInt(data[2]);
 }
 
 /**
@@ -98,9 +67,6 @@ void draw(){
         case 3:
             hostScene.show();
             break;
-        case 6:
-            networkScene.show();
-            break;
     }
     // fill(255);
     // text(int(frameRate), 50, 50);
@@ -113,7 +79,6 @@ void scene0(){
     background(51);
     play.show();
     playOnline.show();
-    network.show();
 }
 
 /**
@@ -149,9 +114,6 @@ void buttonsCLicked(){
  */
 void mousePressed(){
     buttonsCLicked();
-    nameBox.setClicked();
-    addressBox.setClicked();
-    portBox.setClicked();
     //player.processClick();
 }
 
@@ -167,9 +129,4 @@ void keyReleased(){
  */
 void keyPressed(){
     player.processButtonPress(key);
-    nameBox.processKey(keyCode);
-    addressBox.processKey(keyCode);
-    portBox.processKey(keyCode);
-
-
 }

@@ -28,7 +28,8 @@ public class Asteroids extends PApplet {
 
 ArrayList<MenuButton> buttons;
 ArrayList<Asteroid> asteroids;
-MenuButton play, playOnline, netWork, search, host;
+MenuButton play, playOnline, network, search, host;
+TextBox nameBox, addressBox, portBox;
 int scene, level, port;
 Ship player;
 DatagramChannel udp;
@@ -36,6 +37,7 @@ SocketChannel tcp;
 String address, playerName;
 GameScene soloScene, onlineScene;
 HostScene hostScene;
+NetworkScene networkScene;
 
 public void setup(){
     
@@ -47,6 +49,8 @@ public void setup(){
  */
 public void initScene(){
     frameRate(60);
+    loadData();
+
     player = new Ship();
     scene = 0;
     level = 1;
@@ -59,17 +63,44 @@ public void initScene(){
     playOnline = new MenuButton(width/2, height/2, 2.5f, "Online", 0, 3);
     search = new MenuButton(width/2 - 175, height/2 + 300, 2, "Search", 3, 4);
     host = new MenuButton(width/2 + 175, height/2 + 300, 2, "Host", 3, 5);
+    network = new MenuButton(width/2, height/2 + 100, 2.5f, "Network", 0, 6);
+
     buttons.add(play);
     buttons.add(playOnline);
     buttons.add(search);
     buttons.add(host);
-    playerName = "SoCo";
+    buttons.add(network);
+
+    nameBox = new TextBox(width/2, height/2 - 100, 3);
+    nameBox.setText(playerName);
+    nameBox.setLimit(5);
+
+    addressBox = new TextBox(width/2, height/2, 3);
+    addressBox.setText(address);
+
+    portBox = new TextBox(width/2, height/2 + 100, 3);
+    portBox.setText(port + "");
+    portBox.setInt();
+    portBox.setLimit(6);
 
     asteroids = new ArrayList<Asteroid>();
     soloScene = new GameScene(player, asteroids, false);
     onlineScene = new GameScene(player, asteroids, true);
     hostScene = new HostScene();
+    networkScene = new NetworkScene();
+}
 
+public void loadData(){
+    String[] data = loadStrings("Network.txt");
+    if (data == null){
+        String[] tempData = {"Temp", "127.0.0.1", "8765"};
+        saveStrings("Network.txt", tempData);
+        data = loadStrings("Network.txt");
+    }
+
+    playerName = data[0];
+    address = data[1];
+    port = Integer.parseInt(data[2]);
 }
 
 /**
@@ -89,6 +120,9 @@ public void draw(){
         case 3:
             hostScene.show();
             break;
+        case 6:
+            networkScene.show();
+            break;
     }
     // fill(255);
     // text(int(frameRate), 50, 50);
@@ -101,6 +135,7 @@ public void scene0(){
     background(51);
     play.show();
     playOnline.show();
+    network.show();
 }
 
 /**
@@ -136,6 +171,9 @@ public void buttonsCLicked(){
  */
 public void mousePressed(){
     buttonsCLicked();
+    nameBox.setClicked();
+    addressBox.setClicked();
+    portBox.setClicked();
     //player.processClick();
 }
 
@@ -151,6 +189,11 @@ public void keyReleased(){
  */
 public void keyPressed(){
     player.processButtonPress(key);
+    nameBox.processKey(keyCode);
+    addressBox.processKey(keyCode);
+    portBox.processKey(keyCode);
+
+
 }
 public class Asteroid{
     float x, y, size;
@@ -428,7 +471,7 @@ public class GameScene{
     }
 }
 public class HostScene{
-    boolean searchBool, hostBool, threadMade, hostScene;
+    boolean searchBool, hostBool, threadMade, hostScene, error;
     String hostString, searchString, allClients;
     ArrayList<String> clientList;
 
@@ -437,6 +480,7 @@ public class HostScene{
         hostBool = false;
         hostScene = true;
         threadMade = false;
+        error = false;
         hostString = "Waiting for players...";
         searchString = "Searching for games...";
         allClients = "";
@@ -446,6 +490,7 @@ public class HostScene{
     public void setSearch(){
         if (!threadMade){
             try{
+                udp = DatagramChannel.open();
                 tcp = SocketChannel.open();
                 tcp.connect(new InetSocketAddress(address, port));
                 Thread t = new Thread(new Runnable() {
@@ -460,6 +505,8 @@ public class HostScene{
                 System.out.println(e);
             }
         }
+        host.setText("Host");
+        host.setScene(5);
         hostBool = false;
         searchBool = true;
         sendSearchPacket();
@@ -468,6 +515,7 @@ public class HostScene{
     public void setHost(){
         if (!threadMade){
             try{
+                udp = DatagramChannel.open();
                 tcp = SocketChannel.open();
                 tcp.connect(new InetSocketAddress(address, port));
                 Thread t = new Thread(new Runnable() {
@@ -483,10 +531,18 @@ public class HostScene{
             }
         }
 
+        if (hostBool && !error){
+            sendStartPacket();
+            //Give online the players.
+        }
         hostBool = true;
         searchBool = false;
         address = "127.0.0.1";
         sendHostPacket();
+        if (!error){
+            host.setText("Start");
+            host.setScene(2);
+        }
     }
 
     private void showHostText(){
@@ -507,28 +563,24 @@ public class HostScene{
 
     private boolean sendHostPacket(){
         try{
-            // //Connnect to UDP
-            //udp = DatagramChannel.open();
-
             //Connect to TCP
             String packetString = playerName + ",1";
             ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
             tcp.write(buffer);
             hostString = "Waiting for players...";
-            return true;
         }
         catch(Exception e){
             System.out.println("Error in sendInitPacket " + e);
-            hostString = "Waiting for players...";
-            hostString += ("\n\nError connecting to local server. You probably didn't open the server.");
+            hostString = ("\n\nError connecting to local server. You probably didn't open the server.");
+            error = true;
             return false;
         }
+        error = false;
+        return true;
     }
 
     private boolean sendSearchPacket(){
         try{
-            //Change to desired address.
-
             String packetString = playerName + ",0";
             ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
             tcp.write(buffer);
@@ -541,6 +593,18 @@ public class HostScene{
         }
         searchString = "Game found! Waiting for host to start.";
         return true;
+    }
+
+    private void sendStartPacket(){
+        try{
+            String packetString = playerName + ",2," + clientList.size();
+            ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
+            tcp.write(buffer);
+            System.out.println("Sent start");
+        }
+        catch(Exception e){
+            System.out.println("Error in sendStartPacket " + e);
+        }
     }
 
     public void show(){
@@ -560,8 +624,8 @@ public class HostScene{
                 ByteBuffer buffer = ByteBuffer.allocate(1024);
                 tcp.read(buffer);
                 String temp = new String (buffer.array()).trim();
-                //System.out.println(new String(buffer.array()).trim());
-                procesTCP(temp);
+                // System.out.println("new String(buffer.array()).trim()");
+                processTCP(temp);
             }
             catch(Exception e){
                 System.out.println(e);
@@ -571,11 +635,19 @@ public class HostScene{
         }
     }
 
-    private void procesTCP(String packet){
+    private void processTCP(String packet){
         String[] splitMessage = packet.split(",");
         if (splitMessage[1].equals("0") && hostBool){
             addClient(splitMessage[0]);
             hostString = "Waiting for players...\n" + allClients;
+        }
+        if (splitMessage[1].equals("2")){
+            System.out.println(splitMessage[2]);
+            scene = 2;
+            host.setText("Host");
+            host.setScene(5);
+            clientList.clear();
+            allClients = "";
         }
     }
 
@@ -718,6 +790,22 @@ public class MenuButton{
     }
 
     /**
+     * Set the scene to a different value.
+     * @param s Scene number
+     */
+    public void setScene(int s){
+        scene = s;
+    }
+
+    /**
+     * Set the button text to a differnt value
+     * @param s String val
+     */
+    public void setText(String s){
+        text = s;
+    }
+
+    /**
      * Check to see if the mouse is hovered over the button.
      * @return [description]
      */
@@ -737,6 +825,20 @@ public class MenuButton{
         return false;
     }
 
+}
+public class NetworkScene{
+    String userName;
+
+    public  NetworkScene(){
+
+    }
+
+    public void show(){
+        background(51);
+        nameBox.show();
+        addressBox.show();
+        portBox.show();
+    }
 }
 public class Ship{
     float x, y, size, angle, turnRadius, deRate;
@@ -1025,6 +1127,142 @@ public class Ship{
     public int getScore(){
         return score;
     }
+}
+public class TextBox{
+    float x, y, scale, w, h, blinkX;
+    boolean clicked, blink, isInt;
+    String text;
+    int limit;
+
+    public TextBox(float x, float y, float scale){
+        this.x = x;
+        this.y = y;
+        this.scale = scale;
+        this.w = 150 * scale;
+        this.h = 23 * scale;
+        this.limit = 20;
+        this.clicked = false;
+        this.isInt = false;
+        this.text = "";
+        this.blink = true;
+        this.blinkX = this.x;
+        PFont font = createFont("AppleSDGothicNeo-Thin-48.vlw", 80);
+        textFont(font);
+    }
+
+    public void show(){
+        animate();
+        noFill();
+        strokeWeight(4);
+        stroke(255);
+        rectMode(CENTER);
+        rect(x, y, w, h, 7);
+
+        fill(255);
+        textSize(12 * scale);
+        textAlign(CENTER);
+        text(text, x, y + (3 * scale));
+
+        if (blink && clicked){
+            float yPos1 = y - (h/2 - 10) ;
+            float yPos2 = y + (h/2 - 10);
+            strokeWeight(2);
+            line(blinkX, yPos1, blinkX, yPos2);
+        }
+
+        if(frameCount % 30 == 0){
+            blink = !blink;
+        }
+    }
+
+    public void setText(String s){
+        text = s;
+    }
+
+    public void setLimit(int x){
+        limit = x;
+    }
+
+    public void setInt(){
+        isInt = true;
+    }
+
+    public void setClicked(){
+        if (isHovered()){
+            clicked = true;
+            blink = true;
+            return;
+        }
+        clicked = false;
+    }
+
+    public boolean isHovered(){
+        if (mouseX > x - w/2 && mouseX < x + w/2){
+            if (mouseY > y - h/2 && mouseY < y + h/2){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void animate(){
+        float difference = ((textWidth(text)/2) + 8 + x) - blinkX;
+        //System.out.println(difference);
+
+        if (difference > 3){
+            blinkX += 3;
+            blink = true;
+        }
+        else if (difference < -3){
+            blinkX -= 3;
+            blink = true;
+        }
+    }
+
+    public void processKey(int code){
+        if(clicked){
+            //System.out.println((char) code);
+            //Upper case
+            if (text.length() < limit){
+                if (code >= 65 && code <= 90 && !isInt){
+                    text += (char) code;
+                }
+                //Lower case
+                if (code >= 97 && code <= 122 && !isInt){
+                    text += (char) code;
+                }
+                if (code >= 48 && code <= 57){
+                    text += (char) code;
+                }
+            }
+            if (code == 8){
+                if (text.length() >= 1)
+                    text = text.substring(0, text.length() - 1);
+            }
+            if ((code == 32 || code == 46) && !isInt){
+                text += (char) code;
+            }
+            if (code == 10){
+                //For the port
+                if (isInt){
+                    int tempNum = Integer.parseInt(text);
+                    port = tempNum;
+                }
+                //For the player name
+                else if (limit == 5){
+                    playerName = text;
+                }
+                //For the IP address
+                else{
+                    address = text;
+                }
+                clicked = false;
+                String[] tempData = {playerName, address, port + ""};
+                saveStrings("Network.txt", tempData);
+            }
+         }
+    }
+
 }
     public void settings() {  size(900, 900, OPENGL); }
     static public void main(String[] passedArgs) {
