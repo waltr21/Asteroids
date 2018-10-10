@@ -135,8 +135,11 @@ public class HostScene{
             searchBool = true;
             tcp.write(buffer);
             String temp = playerName + ",-1";
-            buffer = ByteBuffer.wrap(temp.getBytes());
-            tcp.write(buffer);
+            System.out.println("Sent: " + packetString);
+
+            ByteBuffer buffer2 = ByteBuffer.wrap(temp.getBytes());
+            tcp.write(buffer2);
+            onlineScene.setTeam(clientList);
         }
         catch(Exception e){
             System.out.println("Error in sendStartPacket " + e);
@@ -180,12 +183,19 @@ public class HostScene{
         }
         if (splitMessage[1].equals("2")){
             //System.out.println(splitMessage[2]);
+            clientList.add(splitMessage[0]);
+            for (int i = 2; i < splitMessage.length; i++){
+                if (!splitMessage[i].equals(playerName)){
+                    clientList.add(splitMessage[i]);
+                }
+            }
             scene = 2;
             host.setText("Host");
             host.setScene(5);
-            clientList.clear();
+            //clientList.clear();
             allClients = "";
             hostScene = false;
+            onlineScene.setTeam(clientList);
         }
     }
 

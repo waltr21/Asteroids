@@ -3,11 +3,13 @@ public class OnlineScene extends GameScene{
     ArrayList<TeamShip> teammates;
     public OnlineScene(){
         super();
+        teammates = new ArrayList<String>();
     }
 
     public void setTeam(ArrayList<String> names){
         for (String s : names){
             teammates.add(new TeamShip(s));
+            System.out.println("Added: " + s);
         }
     }
 
@@ -30,9 +32,5 @@ public class OnlineScene extends GameScene{
         }
         super.showAsteroids();
         super.checkLevel();
-
-        // if (online){
-        //     sendPackets();
-        // }
     }
 }

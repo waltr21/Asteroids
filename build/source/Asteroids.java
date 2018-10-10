@@ -389,8 +389,6 @@ public class GameScene{
     boolean online;
 
     public GameScene(){
-        player = player;
-        asteroids = asteroids;
         level = 1;
         resetAstroids(level);
     }
@@ -399,8 +397,10 @@ public class GameScene{
      * Show the text of the scene
      */
     private void showText(){
+        textSize(30);
         String levelString = "Level " + level + "\n" + player.getScore();
         fill(255);
+        textSize(30);
         text(levelString, width/2, 50);
         String liveString = "";
         for (int i = 0; i < player.getLives(); i++){
@@ -585,10 +585,11 @@ public class HostScene{
             searchBool = true;
             tcp.write(buffer);
             String temp = playerName + ",-1";
-            buffer = ByteBuffer.wrap(temp.getBytes());
-            tcp.write(buffer);
-            
-            Thread.sleep(500);
+            System.out.println("Sent: " + packetString);
+
+            ByteBuffer buffer2 = ByteBuffer.wrap(temp.getBytes());
+            tcp.write(buffer2);
+            onlineScene.setTeam(clientList);
         }
         catch(Exception e){
             System.out.println("Error in sendStartPacket " + e);
@@ -632,12 +633,19 @@ public class HostScene{
         }
         if (splitMessage[1].equals("2")){
             //System.out.println(splitMessage[2]);
+            clientList.add(splitMessage[0]);
+            for (int i = 2; i < splitMessage.length; i++){
+                if (!splitMessage[i].equals(playerName)){
+                    clientList.add(splitMessage[i]);
+                }
+            }
             scene = 2;
             host.setText("Host");
             host.setScene(5);
-            clientList.clear();
+            //clientList.clear();
             allClients = "";
             hostScene = false;
+            onlineScene.setTeam(clientList);
         }
     }
 
@@ -842,6 +850,7 @@ public class OnlineScene extends GameScene{
     public void setTeam(ArrayList<String> names){
         for (String s : names){
             teammates.add(new TeamShip(s));
+            System.out.println("Added: " + s);
         }
     }
 
@@ -864,10 +873,6 @@ public class OnlineScene extends GameScene{
         }
         super.showAsteroids();
         super.checkLevel();
-
-        // if (online){
-        //     sendPackets();
-        // }
     }
 }
 public class Ship{

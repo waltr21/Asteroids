@@ -2,8 +2,6 @@ public class GameScene{
     boolean online;
 
     public GameScene(){
-        player = player;
-        asteroids = asteroids;
         level = 1;
         resetAstroids(level);
     }
@@ -12,8 +10,10 @@ public class GameScene{
      * Show the text of the scene
      */
     private void showText(){
+        textSize(30);
         String levelString = "Level " + level + "\n" + player.getScore();
         fill(255);
+        textSize(30);
         text(levelString, width/2, 50);
         String liveString = "";
         for (int i = 0; i < player.getLives(); i++){
