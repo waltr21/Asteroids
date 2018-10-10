@@ -2,6 +2,7 @@ public class HostScene{
     boolean searchBool, hostBool, threadMade, hostScene, error;
     String hostString, searchString, allClients;
     ArrayList<String> clientList;
+    Thread tempThread;
 
     public HostScene(){
         searchBool = false;
@@ -21,12 +22,12 @@ public class HostScene{
                 udp = DatagramChannel.open();
                 tcp = SocketChannel.open();
                 tcp.connect(new InetSocketAddress(address, port));
-                Thread t = new Thread(new Runnable() {
+                tempThread = new Thread(new Runnable() {
                     public void run() {
                         runTCP();
                     }
                 });
-                t.start();
+                tempThread.start();
                 threadMade = true;
             }
             catch(Exception e){
@@ -121,15 +122,21 @@ public class HostScene{
 
     public void sendStartPacket(){
         try{
-            System.out.println("Sent start");
-            String packetString = playerName + ",2," + clientList.size();
+
+            String packetString = playerName + ",2";
+            for (String s : clientList){
+                playerName += "," + s;
+            }
             ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
             host.setText("Host");
             host.setScene(5);
+            hostScene = false;
             hostBool = false;
             searchBool = true;
             tcp.write(buffer);
-            //System.out.println("Sent start");
+            String temp = playerName + ",-1";
+            buffer = ByteBuffer.wrap(temp.getBytes());
+            tcp.write(buffer);
         }
         catch(Exception e){
             System.out.println("Error in sendStartPacket " + e);
@@ -162,6 +169,7 @@ public class HostScene{
                 break;
             }
         }
+        System.out.println("Thread closed.");
     }
 
     private void processTCP(String packet){
@@ -171,12 +179,13 @@ public class HostScene{
             hostString = "Waiting for players...\n" + allClients;
         }
         if (splitMessage[1].equals("2")){
-            System.out.println(splitMessage[2]);
+            //System.out.println(splitMessage[2]);
             scene = 2;
             host.setText("Host");
             host.setScene(5);
             clientList.clear();
             allClients = "";
+            hostScene = false;
         }
     }
 

@@ -1,13 +1,14 @@
 public class TextBox{
     float x, y, scale, w, h, blinkX;
     boolean clicked, blink, isInt;
-    String text;
+    String text, plate;
     int limit;
 
-    public TextBox(float x, float y, float scale){
+    public TextBox(float x, float y, float scale, String plate){
         this.x = x;
         this.y = y;
         this.scale = scale;
+        this.plate = plate;
         this.w = 150 * scale;
         this.h = 23 * scale;
         this.limit = 20;
@@ -24,7 +25,7 @@ public class TextBox{
         animate();
         noFill();
         strokeWeight(4);
-        stroke(255);
+        stroke(146,221,200);
         rectMode(CENTER);
         rect(x, y, w, h, 7);
 
@@ -32,6 +33,7 @@ public class TextBox{
         textSize(12 * scale);
         textAlign(CENTER);
         text(text, x, y + (3 * scale));
+        text(plate, x - (w/2 + textWidth(plate)/2 + 20), y + (3 * scale));
 
         if (blink && clicked){
             float yPos1 = y - (h/2 - 10) ;
@@ -104,7 +106,7 @@ public class TextBox{
                 if (code >= 48 && code <= 57){
                     text += (char) code;
                 }
-                if ((code == 32 || code == 46) && !isInt){
+                if (code == 46 && !isInt){
                     text += (char) code;
                 }
             }

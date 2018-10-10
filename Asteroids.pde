@@ -13,7 +13,8 @@ Ship player;
 DatagramChannel udp;
 SocketChannel tcp;
 String address, playerName;
-GameScene soloScene, onlineScene;
+GameScene soloScene;
+OnlineScene onlineScene;
 HostScene hostScene;
 NetworkScene networkScene;
 
@@ -51,21 +52,21 @@ void initScene(){
     buttons.add(network);
     buttons.add(menu);
 
-    nameBox = new TextBox(width/2, height/2 - 100, 3);
+    nameBox = new TextBox(width/2, height/2 - 100, 3, "Name:");
     nameBox.setText(playerName);
     nameBox.setLimit(5);
 
-    addressBox = new TextBox(width/2, height/2, 3);
+    addressBox = new TextBox(width/2, height/2, 3, "IP:");
     addressBox.setText(address);
 
-    portBox = new TextBox(width/2, height/2 + 100, 3);
+    portBox = new TextBox(width/2, height/2 + 100, 3, "Port:");
     portBox.setText(port + "");
     portBox.setInt();
     portBox.setLimit(6);
 
     asteroids = new ArrayList<Asteroid>();
-    soloScene = new GameScene(player, asteroids, false);
-    onlineScene = new GameScene(player, asteroids, true);
+    soloScene = new GameScene();
+    onlineScene = new OnlineScene();
     hostScene = new HostScene();
     networkScene = new NetworkScene();
 }
@@ -139,11 +140,10 @@ void buttonsCLicked(){
             }
 
             if (tempScene == 1){
-                soloScene = new GameScene(player, asteroids, false);
-                System.out.println("hit");
+                soloScene = new GameScene();
             }
             else if (tempScene == 2){
-                onlineScene = new GameScene(player, asteroids, true);
+                onlineScene = new OnlineScene();
             }
             scene = tempScene;
         }

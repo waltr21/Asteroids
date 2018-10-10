@@ -35,7 +35,8 @@ Ship player;
 DatagramChannel udp;
 SocketChannel tcp;
 String address, playerName;
-GameScene soloScene, onlineScene;
+GameScene soloScene;
+OnlineScene onlineScene;
 HostScene hostScene;
 NetworkScene networkScene;
 
@@ -73,21 +74,21 @@ public void initScene(){
     buttons.add(network);
     buttons.add(menu);
 
-    nameBox = new TextBox(width/2, height/2 - 100, 3);
+    nameBox = new TextBox(width/2, height/2 - 100, 3, "Name:");
     nameBox.setText(playerName);
     nameBox.setLimit(5);
 
-    addressBox = new TextBox(width/2, height/2, 3);
+    addressBox = new TextBox(width/2, height/2, 3, "IP:");
     addressBox.setText(address);
 
-    portBox = new TextBox(width/2, height/2 + 100, 3);
+    portBox = new TextBox(width/2, height/2 + 100, 3, "Port:");
     portBox.setText(port + "");
     portBox.setInt();
     portBox.setLimit(6);
 
     asteroids = new ArrayList<Asteroid>();
-    soloScene = new GameScene(player, asteroids, false);
-    onlineScene = new GameScene(player, asteroids, true);
+    soloScene = new GameScene();
+    onlineScene = new OnlineScene();
     hostScene = new HostScene();
     networkScene = new NetworkScene();
 }
@@ -161,11 +162,10 @@ public void buttonsCLicked(){
             }
 
             if (tempScene == 1){
-                soloScene = new GameScene(player, asteroids, false);
-                System.out.println("hit");
+                soloScene = new GameScene();
             }
             else if (tempScene == 2){
-                onlineScene = new GameScene(player, asteroids, true);
+                onlineScene = new OnlineScene();
             }
             scene = tempScene;
         }
@@ -386,14 +386,11 @@ public class Bullet{
 
 }
 public class GameScene{
-    Ship player;
-    ArrayList<Asteroid> asteroids;
     boolean online;
 
-    public GameScene(Ship player, ArrayList<Asteroid> asteroids, boolean online){
-        this.player = player;
-        this.asteroids = asteroids;
-        this.online = online;
+    public GameScene(){
+        player = player;
+        asteroids = asteroids;
         level = 1;
         resetAstroids(level);
     }
@@ -440,27 +437,6 @@ public class GameScene{
         }
     }
 
-    private void sendName(){
-        try{
-            String name = "Soco";
-            ByteBuffer b = ByteBuffer.wrap(name.getBytes());
-            tcp.write(b);
-        }
-        catch (Exception e){
-            System.out.println("Error in sending name: " + e);
-        }
-    }
-
-    private void sendPackets(){
-        try{
-            ByteBuffer buff = ByteBuffer.wrap("This is a test".getBytes());
-            //udp.send(buff, new InetSocketAddress(address, port));
-        }
-        catch(Exception e){
-            System.out.println("Error in sending coordinate packets: " + e);
-        }
-    }
-
     public void show(){
         background(0);
         showText();
@@ -470,16 +446,13 @@ public class GameScene{
         }
         showAsteroids();
         checkLevel();
-
-        if (online){
-            sendPackets();
-        }
     }
 }
 public class HostScene{
     boolean searchBool, hostBool, threadMade, hostScene, error;
     String hostString, searchString, allClients;
     ArrayList<String> clientList;
+    Thread tempThread;
 
     public HostScene(){
         searchBool = false;
@@ -499,12 +472,12 @@ public class HostScene{
                 udp = DatagramChannel.open();
                 tcp = SocketChannel.open();
                 tcp.connect(new InetSocketAddress(address, port));
-                Thread t = new Thread(new Runnable() {
+                tempThread = new Thread(new Runnable() {
                     public void run() {
                         runTCP();
                     }
                 });
-                t.start();
+                tempThread.start();
                 threadMade = true;
             }
             catch(Exception e){
@@ -599,15 +572,23 @@ public class HostScene{
 
     public void sendStartPacket(){
         try{
-            System.out.println("Sent start");
-            String packetString = playerName + ",2," + clientList.size();
+
+            String packetString = playerName + ",2";
+            for (String s : clientList){
+                playerName += "," + s;
+            }
             ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
             host.setText("Host");
             host.setScene(5);
+            hostScene = false;
             hostBool = false;
             searchBool = true;
             tcp.write(buffer);
-            //System.out.println("Sent start");
+            String temp = playerName + ",-1";
+            buffer = ByteBuffer.wrap(temp.getBytes());
+            tcp.write(buffer);
+            
+            Thread.sleep(500);
         }
         catch(Exception e){
             System.out.println("Error in sendStartPacket " + e);
@@ -640,6 +621,7 @@ public class HostScene{
                 break;
             }
         }
+        System.out.println("Thread closed.");
     }
 
     private void processTCP(String packet){
@@ -649,12 +631,13 @@ public class HostScene{
             hostString = "Waiting for players...\n" + allClients;
         }
         if (splitMessage[1].equals("2")){
-            System.out.println(splitMessage[2]);
+            //System.out.println(splitMessage[2]);
             scene = 2;
             host.setText("Host");
             host.setScene(5);
             clientList.clear();
             allClients = "";
+            hostScene = false;
         }
     }
 
@@ -847,6 +830,44 @@ public class NetworkScene{
         addressBox.show();
         portBox.show();
         menu.show();
+    }
+}
+public class OnlineScene extends GameScene{
+    boolean isHost;
+    ArrayList<TeamShip> teammates;
+    public OnlineScene(){
+        super();
+    }
+
+    public void setTeam(ArrayList<String> names){
+        for (String s : names){
+            teammates.add(new TeamShip(s));
+        }
+    }
+
+    private void sendPackets(){
+        try{
+            ByteBuffer buff = ByteBuffer.wrap("This is a test".getBytes());
+            //udp.send(buff, new InetSocketAddress(address, port));
+        }
+        catch(Exception e){
+            System.out.println("Error in sending coordinate packets: " + e);
+        }
+    }
+
+    public void show(){
+        background(0);
+        super.showText();
+        if(!player.show()){
+            scene = 0;
+            return;
+        }
+        super.showAsteroids();
+        super.checkLevel();
+
+        // if (online){
+        //     sendPackets();
+        // }
     }
 }
 public class Ship{
@@ -1137,16 +1158,47 @@ public class Ship{
         return score;
     }
 }
+public class TeamShip{
+    String name;
+    float x, y, angle, size;
+    boolean dead;
+
+    public TeamShip(String name){
+        this.name = name;
+        this.x = width/2;
+        this.y = height/2;
+        this.dead = false;
+        this.angle = 0;
+        this.size = 20;
+
+    }
+
+    public void show(){
+        pushMatrix();
+
+        noFill();
+        stroke(255);
+        strokeWeight(3);
+
+        translate(x, y);
+        rotate(angle);
+        triangle(-size, size, 0, -size - 5, size, size);
+        text(name, x, y + size + 10);
+
+        popMatrix();
+    }
+}
 public class TextBox{
     float x, y, scale, w, h, blinkX;
     boolean clicked, blink, isInt;
-    String text;
+    String text, plate;
     int limit;
 
-    public TextBox(float x, float y, float scale){
+    public TextBox(float x, float y, float scale, String plate){
         this.x = x;
         this.y = y;
         this.scale = scale;
+        this.plate = plate;
         this.w = 150 * scale;
         this.h = 23 * scale;
         this.limit = 20;
@@ -1163,7 +1215,7 @@ public class TextBox{
         animate();
         noFill();
         strokeWeight(4);
-        stroke(255);
+        stroke(146,221,200);
         rectMode(CENTER);
         rect(x, y, w, h, 7);
 
@@ -1171,6 +1223,7 @@ public class TextBox{
         textSize(12 * scale);
         textAlign(CENTER);
         text(text, x, y + (3 * scale));
+        text(plate, x - (w/2 + textWidth(plate)/2 + 20), y + (3 * scale));
 
         if (blink && clicked){
             float yPos1 = y - (h/2 - 10) ;
@@ -1243,7 +1296,7 @@ public class TextBox{
                 if (code >= 48 && code <= 57){
                     text += (char) code;
                 }
-                if ((code == 32 || code == 46) && !isInt){
+                if (code == 46 && !isInt){
                     text += (char) code;
                 }
             }

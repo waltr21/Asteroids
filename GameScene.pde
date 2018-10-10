@@ -1,12 +1,9 @@
 public class GameScene{
-    Ship player;
-    ArrayList<Asteroid> asteroids;
     boolean online;
 
-    public GameScene(Ship player, ArrayList<Asteroid> asteroids, boolean online){
-        this.player = player;
-        this.asteroids = asteroids;
-        this.online = online;
+    public GameScene(){
+        player = player;
+        asteroids = asteroids;
         level = 1;
         resetAstroids(level);
     }
@@ -53,27 +50,6 @@ public class GameScene{
         }
     }
 
-    private void sendName(){
-        try{
-            String name = "Soco";
-            ByteBuffer b = ByteBuffer.wrap(name.getBytes());
-            tcp.write(b);
-        }
-        catch (Exception e){
-            System.out.println("Error in sending name: " + e);
-        }
-    }
-
-    private void sendPackets(){
-        try{
-            ByteBuffer buff = ByteBuffer.wrap("This is a test".getBytes());
-            //udp.send(buff, new InetSocketAddress(address, port));
-        }
-        catch(Exception e){
-            System.out.println("Error in sending coordinate packets: " + e);
-        }
-    }
-
     public void show(){
         background(0);
         showText();
@@ -83,9 +59,5 @@ public class GameScene{
         }
         showAsteroids();
         checkLevel();
-
-        if (online){
-            sendPackets();
-        }
     }
 }

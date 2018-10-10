@@ -35,6 +35,7 @@ public class Server{
                runUDP();
            }
         });
+        System.out.println("Thread Created.");
         threadUDP.start();
 
         while (true){
@@ -45,6 +46,7 @@ public class Server{
                       runTCP(sc);
                   }
                 });
+                System.out.println("Thread Created.");
                 threadTCP.start();
             }
             catch(Exception e){
@@ -62,7 +64,7 @@ public class Server{
             //Bind to the port number.
             udp = DatagramChannel.open();
             udp.bind(new InetSocketAddress(port));
-            System.out.println("UDP Connection successful.");
+            //System.out.println("UDP Connection successful.");
 
             //Continue to loop and search for packets.
             while(true){
@@ -75,15 +77,13 @@ public class Server{
             }
         }
         catch(Exception e){
+            System.out.println("UDP fail: ");
             System.out.println(e);
         }
     }
 
     private void runTCP(SocketChannel sc){
         try{
-            //Bind to the port number.
-            System.out.println("TCP Connection successful.");
-
             //Continue to loop and search for packets.
             while(true){
                 //SocketChannel sc = tcp.accept();
@@ -96,6 +96,8 @@ public class Server{
         }
         //Exceptions.
         catch(Exception e){
+            System.out.println("TCP Fail: ");
+
             System.out.println(e);
         }
     }
@@ -103,13 +105,20 @@ public class Server{
     private void parseTCP(String message, SocketChannel sc){
         //Split message
         String[] splitMessage = message.split(",");
-        String name = splitMessage[0];
-        addClient(name, sc);
-        //If we are working with an init connect packet.
-        if (splitMessage[1].equals("0") || splitMessage[1].equals("2")){
-            ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
-            sendAllTCP(name, buffer);
+        if (splitMessage.length > 1){
+            String name = splitMessage[0];
+            addClient(name, sc);
+            //If we are working with an init connect packet.
+            if (splitMessage[1].equals("0") || splitMessage[1].equals("2")){
+                ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
+                sendAllTCP(name, buffer);
+            }
+            if(splitMessage[1].equals("-1")){
+                ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
+                sendSelf(name, buffer);
+            }
         }
+
     }
 
     private void addClient(String name, SocketChannel sc){
@@ -143,6 +152,20 @@ public class Server{
     private void sendAllTCP(String name, ByteBuffer buffer){
         for (NameSocket ns : TCPclients){
             if (!ns.name.equals(name)){
+                try{
+                    System.out.println("Sent packet");
+                    ns.socketC.write(buffer);
+                }
+                catch(Exception e){
+                    System.out.println(e);
+                }
+            }
+        }
+    }
+
+    private void sendSelf(String name, ByteBuffer buffer){
+        for (NameSocket ns : TCPclients){
+            if (ns.name.equals(name)){
                 try{
                     System.out.println("Sent packet");
                     ns.socketC.write(buffer);
