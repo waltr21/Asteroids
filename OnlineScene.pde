@@ -36,7 +36,6 @@ public class OnlineScene extends GameScene{
     }
 
     public void showTeam(){
-        System.out.println(teammates.size());
         for (TeamShip ts : teammates){
             ts.show();
         }
