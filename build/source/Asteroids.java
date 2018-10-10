@@ -157,15 +157,12 @@ public void buttonsCLicked(){
                 return;
             }
 
-            if (tempScene == 2){
-                hostScene.sendStartPacket();
-            }
-
             if (tempScene == 1){
                 soloScene = new GameScene();
             }
             else if (tempScene == 2){
                 onlineScene = new OnlineScene();
+                hostScene.sendStartPacket();
             }
             scene = tempScene;
         }
@@ -639,13 +636,12 @@ public class HostScene{
                     clientList.add(splitMessage[i]);
                 }
             }
-            scene = 2;
             host.setText("Host");
             host.setScene(5);
-            //clientList.clear();
-            allClients = "";
             hostScene = false;
+            onlineScene = new OnlineScene();
             onlineScene.setTeam(clientList);
+            scene = 2;
         }
     }
 
@@ -845,6 +841,7 @@ public class OnlineScene extends GameScene{
     ArrayList<TeamShip> teammates;
     public OnlineScene(){
         super();
+        teammates = new ArrayList<TeamShip>();
     }
 
     public void setTeam(ArrayList<String> names){
@@ -867,12 +864,20 @@ public class OnlineScene extends GameScene{
     public void show(){
         background(0);
         super.showText();
+        showTeam();
         if(!player.show()){
             scene = 0;
             return;
         }
         super.showAsteroids();
         super.checkLevel();
+    }
+
+    public void showTeam(){
+        System.out.println(teammates.size());
+        for (TeamShip ts : teammates){
+            ts.show();
+        }
     }
 }
 public class Ship{
@@ -1188,6 +1193,7 @@ public class TeamShip{
         translate(x, y);
         rotate(angle);
         triangle(-size, size, 0, -size - 5, size, size);
+        fill(255);
         text(name, x, y + size + 10);
 
         popMatrix();

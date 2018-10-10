@@ -189,13 +189,12 @@ public class HostScene{
                     clientList.add(splitMessage[i]);
                 }
             }
-            scene = 2;
             host.setText("Host");
             host.setScene(5);
-            //clientList.clear();
-            allClients = "";
             hostScene = false;
+            onlineScene = new OnlineScene();
             onlineScene.setTeam(clientList);
+            scene = 2;
         }
     }
 

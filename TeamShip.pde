@@ -23,6 +23,7 @@ public class TeamShip{
         translate(x, y);
         rotate(angle);
         triangle(-size, size, 0, -size - 5, size, size);
+        fill(255);
         text(name, x, y + size + 10);
 
         popMatrix();

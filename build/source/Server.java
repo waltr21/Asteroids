@@ -91,7 +91,11 @@ public class Server{
                 sc.read(buffer);
                 String tempMessage = new String(buffer.array()).trim();
                 parseTCP(tempMessage, sc);
-                //System.out.println(tempMessage);
+                if (tempMessage.length() < 1){
+                    System.out.println("Lost connection to client. Breaking...");
+                    removeClient(sc);
+                    break;
+                }
             }
         }
         //Exceptions.
@@ -153,7 +157,7 @@ public class Server{
         for (NameSocket ns : TCPclients){
             if (!ns.name.equals(name)){
                 try{
-                    System.out.println("Sent packet");
+                    //System.out.println("Sent packet");
                     ns.socketC.write(buffer);
                 }
                 catch(Exception e){
@@ -163,11 +167,23 @@ public class Server{
         }
     }
 
+    private void removeClient(SocketChannel sc){
+        for (int i = 0; i < TCPclients.size(); i++){
+            NameSocket ns = TCPclients.get(i);
+            if (ns.socketC.equals(sc)){
+                //System.out.println("Removed: " + ns.name);
+                TCPclients.remove(i);
+                System.out.println("Removed: " + ns.name + "\nClients Size: " + TCPclients.size());
+                break;
+            }
+        }
+    }
+
     private void sendSelf(String name, ByteBuffer buffer){
         for (NameSocket ns : TCPclients){
             if (ns.name.equals(name)){
                 try{
-                    System.out.println("Sent packet");
+                    //System.out.println("Sent packet");
                     ns.socketC.write(buffer);
                 }
                 catch(Exception e){

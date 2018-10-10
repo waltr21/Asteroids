@@ -3,7 +3,7 @@ public class OnlineScene extends GameScene{
     ArrayList<TeamShip> teammates;
     public OnlineScene(){
         super();
-        teammates = new ArrayList<String>();
+        teammates = new ArrayList<TeamShip>();
     }
 
     public void setTeam(ArrayList<String> names){
@@ -26,11 +26,19 @@ public class OnlineScene extends GameScene{
     public void show(){
         background(0);
         super.showText();
+        showTeam();
         if(!player.show()){
             scene = 0;
             return;
         }
         super.showAsteroids();
         super.checkLevel();
+    }
+
+    public void showTeam(){
+        System.out.println(teammates.size());
+        for (TeamShip ts : teammates){
+            ts.show();
+        }
     }
 }

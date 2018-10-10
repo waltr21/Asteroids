@@ -135,15 +135,12 @@ void buttonsCLicked(){
                 return;
             }
 
-            if (tempScene == 2){
-                hostScene.sendStartPacket();
-            }
-
             if (tempScene == 1){
                 soloScene = new GameScene();
             }
             else if (tempScene == 2){
                 onlineScene = new OnlineScene();
+                hostScene.sendStartPacket();
             }
             scene = tempScene;
         }
