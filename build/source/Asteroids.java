@@ -313,7 +313,7 @@ public class Bullet{
         this.x = x;
         this.y = y;
         this.angle = angle - PI/2;
-        this.size = 5;
+        this.size = 50;
         this.count = 0;
         this.p = p;
         this.velocity = PVector.fromAngle(this.angle);
@@ -352,7 +352,7 @@ public class Bullet{
     public void checkHit(){
         for (Asteroid a : asteroids){
             float distance = dist(a.getX(), a.getY(), x, y);
-            if (distance < a.getSize()/2){
+            if (distance < a.getSize()/2 + size/2){
                 p.addScore(a.getScore());
                 a.explode();
                 count = 1000;
@@ -874,7 +874,6 @@ public class OnlineScene extends GameScene{
     }
 
     public void showTeam(){
-        System.out.println(teammates.size());
         for (TeamShip ts : teammates){
             ts.show();
         }
@@ -1063,7 +1062,7 @@ public class Ship{
     }
 
     private void shoot(){
-        if (bullets.size() < 4){
+        if (bullets.size() < 40){
             bullets.add(new Bullet(x, y, angle, this));
         }
     }

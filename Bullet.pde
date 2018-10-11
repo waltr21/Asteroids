@@ -47,7 +47,7 @@ public class Bullet{
     public void checkHit(){
         for (Asteroid a : asteroids){
             float distance = dist(a.getX(), a.getY(), x, y);
-            if (distance < a.getSize()/2){
+            if (distance < a.getSize()/2 + size/2){
                 p.addScore(a.getScore());
                 a.explode();
                 count = 1000;
