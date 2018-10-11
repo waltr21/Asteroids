@@ -888,16 +888,7 @@ public class OnlineScene extends GameScene{
         }
         super.showAsteroids();
         super.checkLevel();
-        // if (frameCount % 60 == 0){
-        //     try{
-        //         String temp = String.format("%s,%.3f,%.3f,%.3f", playerName, player.getX(), player.getY(), player.getAngle());
-        //         ByteBuffer buff = ByteBuffer.wrap(temp.getBytes());
-        //         udp.send(buff, socket);
-        //     }
-        //     catch(Exception e){
-        //         System.out.println("Error in OnlineScene show: \n" + e);
-        //     }
-        // }
+
         try{
             String temp = String.format("%s,%.3f,%.3f,%.3f", playerName, player.getX(), player.getY(), player.getAngle());
             ByteBuffer buff = ByteBuffer.wrap(temp.getBytes());
@@ -906,8 +897,6 @@ public class OnlineScene extends GameScene{
         catch(Exception e){
             System.out.println("Error in OnlineScene show: \n" + e);
         }
-
-
     }
 
     private void showTeam(){
@@ -1279,7 +1268,8 @@ public class TeamShip{
         triangle(-size, size, 0, -size - 5, size, size);
         fill(255);
         textSize(20);
-        text(name, 0, size + 25);
+        rotate(-angle);
+        text(name, 0, size + 30);
 
         popMatrix();
     }
