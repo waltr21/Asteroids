@@ -274,6 +274,10 @@ public class Ship{
         return y;
     }
 
+    public float getAngle(){
+        return angle;
+    }
+
     public float getSize(){
         return size;
     }

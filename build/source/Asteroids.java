@@ -313,7 +313,7 @@ public class Bullet{
         this.x = x;
         this.y = y;
         this.angle = angle - PI/2;
-        this.size = 50;
+        this.size = 5;
         this.count = 0;
         this.p = p;
         this.velocity = PVector.fromAngle(this.angle);
@@ -572,7 +572,7 @@ public class HostScene{
 
             String packetString = playerName + ",2";
             for (String s : clientList){
-                playerName += "," + s;
+                packetString += "," + s;
             }
             ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
             host.setText("Host");
@@ -582,7 +582,7 @@ public class HostScene{
             searchBool = true;
             tcp.write(buffer);
             String temp = playerName + ",-1";
-            System.out.println("Sent: " + packetString);
+            //System.out.println("Sent: " + packetString);
 
             ByteBuffer buffer2 = ByteBuffer.wrap(temp.getBytes());
             tcp.write(buffer2);
@@ -623,12 +623,14 @@ public class HostScene{
     }
 
     private void processTCP(String packet){
+        packet = packet.trim();
         String[] splitMessage = packet.split(",");
         if (splitMessage[1].equals("0") && hostBool){
             addClient(splitMessage[0]);
             hostString = "Waiting for players...\n" + allClients;
         }
         if (splitMessage[1].equals("2")){
+            System.out.println(packet);
             //System.out.println(splitMessage[2]);
             clientList.add(splitMessage[0]);
             for (int i = 2; i < splitMessage.length; i++){
@@ -838,10 +840,25 @@ public class NetworkScene{
 }
 public class OnlineScene extends GameScene{
     boolean isHost;
+    InetSocketAddress socket;
     ArrayList<TeamShip> teammates;
+
     public OnlineScene(){
         super();
         teammates = new ArrayList<TeamShip>();
+        try{
+            udp = DatagramChannel.open();
+            socket = new InetSocketAddress(address, port);
+            Thread t1 = new Thread(new Runnable() {
+                public void run() {
+                    runUDP();
+                }
+            });
+            t1.start();
+        }
+        catch(Exception e){
+            System.out.println("Error in Online scene Constuctor: \n" + e);
+        }
     }
 
     public void setTeam(ArrayList<String> names){
@@ -854,7 +871,7 @@ public class OnlineScene extends GameScene{
     private void sendPackets(){
         try{
             ByteBuffer buff = ByteBuffer.wrap("This is a test".getBytes());
-            //udp.send(buff, new InetSocketAddress(address, port));
+            udp.send(buff, new InetSocketAddress(address, port));
         }
         catch(Exception e){
             System.out.println("Error in sending coordinate packets: " + e);
@@ -871,12 +888,67 @@ public class OnlineScene extends GameScene{
         }
         super.showAsteroids();
         super.checkLevel();
+        // if (frameCount % 60 == 0){
+        //     try{
+        //         String temp = String.format("%s,%.3f,%.3f,%.3f", playerName, player.getX(), player.getY(), player.getAngle());
+        //         ByteBuffer buff = ByteBuffer.wrap(temp.getBytes());
+        //         udp.send(buff, socket);
+        //     }
+        //     catch(Exception e){
+        //         System.out.println("Error in OnlineScene show: \n" + e);
+        //     }
+        // }
+        try{
+            String temp = String.format("%s,%.3f,%.3f,%.3f", playerName, player.getX(), player.getY(), player.getAngle());
+            ByteBuffer buff = ByteBuffer.wrap(temp.getBytes());
+            udp.send(buff, socket);
+        }
+        catch(Exception e){
+            System.out.println("Error in OnlineScene show: \n" + e);
+        }
+
+
     }
 
-    public void showTeam(){
+    private void showTeam(){
         for (TeamShip ts : teammates){
             ts.show();
         }
+    }
+
+    private void runUDP(){
+        System.out.println("Thread created.");
+        try{
+            while(true){
+                ByteBuffer buffer = ByteBuffer.allocate(1024);
+        		udp.receive(buffer);
+                String message = new String(buffer.array());
+                message = message.trim();
+                String[] coordinates = message.split(",");
+                //System.out.println(message);
+
+                if (coordinates.length == 4){
+                    setTeamLoc(coordinates[0], coordinates[1], coordinates[2], coordinates[3]);
+                }
+            }
+        }
+        catch(Exception e){
+            System.out.println("Error in Online UDP thread: \n" + e);
+        }
+        System.out.println("Thread closed.");
+    }
+
+    private void setTeamLoc(String name, String xString, String yString, String angleString){
+        float tempX = Float.parseFloat(xString);
+        float tempY = Float.parseFloat(yString);
+        float tempAngle = Float.parseFloat(angleString);
+
+        for (TeamShip ts : teammates){
+            if (ts.getName().equals(name)){
+                ts.setPos(tempX, tempY, tempAngle);
+            }
+        }
+
     }
 }
 public class Ship{
@@ -1062,7 +1134,7 @@ public class Ship{
     }
 
     private void shoot(){
-        if (bullets.size() < 40){
+        if (bullets.size() < 4){
             bullets.add(new Bullet(x, y, angle, this));
         }
     }
@@ -1155,6 +1227,10 @@ public class Ship{
         return y;
     }
 
+    public float getAngle(){
+        return angle;
+    }
+
     public float getSize(){
         return size;
     }
@@ -1179,7 +1255,16 @@ public class TeamShip{
         this.dead = false;
         this.angle = 0;
         this.size = 20;
+    }
 
+    public String getName(){
+        return name;
+    }
+
+    public void setPos(float x, float y, float angle){
+        this.x = x;
+        this.y = y;
+        this.angle = angle;
     }
 
     public void show(){
@@ -1193,7 +1278,8 @@ public class TeamShip{
         rotate(angle);
         triangle(-size, size, 0, -size - 5, size, size);
         fill(255);
-        text(name, x, y + size + 10);
+        textSize(20);
+        text(name, 0, size + 25);
 
         popMatrix();
     }

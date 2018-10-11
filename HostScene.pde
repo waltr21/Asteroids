@@ -125,7 +125,7 @@ public class HostScene{
 
             String packetString = playerName + ",2";
             for (String s : clientList){
-                playerName += "," + s;
+                packetString += "," + s;
             }
             ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
             host.setText("Host");
@@ -135,7 +135,7 @@ public class HostScene{
             searchBool = true;
             tcp.write(buffer);
             String temp = playerName + ",-1";
-            System.out.println("Sent: " + packetString);
+            //System.out.println("Sent: " + packetString);
 
             ByteBuffer buffer2 = ByteBuffer.wrap(temp.getBytes());
             tcp.write(buffer2);
@@ -176,12 +176,14 @@ public class HostScene{
     }
 
     private void processTCP(String packet){
+        packet = packet.trim();
         String[] splitMessage = packet.split(",");
         if (splitMessage[1].equals("0") && hostBool){
             addClient(splitMessage[0]);
             hostString = "Waiting for players...\n" + allClients;
         }
         if (splitMessage[1].equals("2")){
+            System.out.println(packet);
             //System.out.println(splitMessage[2]);
             clientList.add(splitMessage[0]);
             for (int i = 2; i < splitMessage.length; i++){

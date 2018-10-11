@@ -10,7 +10,16 @@ public class TeamShip{
         this.dead = false;
         this.angle = 0;
         this.size = 20;
+    }
 
+    public String getName(){
+        return name;
+    }
+
+    public void setPos(float x, float y, float angle){
+        this.x = x;
+        this.y = y;
+        this.angle = angle;
     }
 
     public void show(){
@@ -24,7 +33,8 @@ public class TeamShip{
         rotate(angle);
         triangle(-size, size, 0, -size - 5, size, size);
         fill(255);
-        text(name, x, y + size + 10);
+        textSize(20);
+        text(name, 0, size + 25);
 
         popMatrix();
     }

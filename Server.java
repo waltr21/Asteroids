@@ -55,9 +55,9 @@ public class Server{
         }
     }
 
-    private void connectThread(){
-
-    }
+    // private void connectThread(){
+    //
+    // }
 
     private void runUDP(){
         try{
@@ -71,6 +71,22 @@ public class Server{
                 ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
                 SocketAddress currentAddress = udp.receive(buffer);
                 buffer.flip();
+                String message = new String(buffer.array()).trim();
+                //System.out.println(message);
+                String[] splitMessage = message.split(",");
+
+                if (message.length() > 1){
+                    if (UDPclients.size() != TCPclients.size())
+                        addClient(splitMessage[0], currentAddress);
+
+                    sendAllUDP(splitMessage[0], buffer);
+                }
+                else{
+                    System.out.println("Lost connection to client. Breaking...");
+                    removeClient(sc);
+                    break;
+                }
+
 
                 //System.out.println(new String(buffer.array()).trim());
 
@@ -167,6 +183,24 @@ public class Server{
         }
     }
 
+    private void sendAllUDP(String name, ByteBuffer buffer){
+        for (int i = 0; i < UDPclients.size(); i++){
+            NameSocket ns = UDPclients.get(i);
+            if (!ns.name.equals(name)){
+                try{
+                    //System.out.println("Sent packet");
+                    udp.send(buffer, ns.socketA);
+                    //System.out.println(String.format("Sender: %s    receiver: %s", name, ns.name));
+                    //System.out.println("Sent to: " + i);
+                    // ns.socketA.send(buffer);
+                }
+                catch(Exception e){
+                    System.out.println(e);
+                }
+            }
+        }
+    }
+
     private void removeClient(SocketChannel sc){
         for (int i = 0; i < TCPclients.size(); i++){
             NameSocket ns = TCPclients.get(i);
@@ -174,6 +208,18 @@ public class Server{
                 //System.out.println("Removed: " + ns.name);
                 TCPclients.remove(i);
                 System.out.println("Removed: " + ns.name + "\nClients Size: " + TCPclients.size());
+                break;
+            }
+        }
+    }
+
+    private void removeClient(SocketAddress sa){
+        for (int i = 0; i < UDPclients.size(); i++){
+            NameSocket ns = UDPclients.get(i);
+            if (ns.socketA.equals(sa)){
+                //System.out.println("Removed: " + ns.name);
+                TCPclients.remove(i);
+                System.out.println("Removed: " + ns.name + "\nClients Size: " + UDPclients.size());
                 break;
             }
         }
