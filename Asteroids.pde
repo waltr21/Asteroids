@@ -6,12 +6,17 @@ import java.util.ArrayList;
 
 ArrayList<MenuButton> buttons;
 ArrayList<Asteroid> asteroids;
-MenuButton play, playOnline;
+MenuButton play, playOnline, network, search, host, menu;
+TextBox nameBox, addressBox, portBox;
 int scene, level, port;
 Ship player;
 DatagramChannel udp;
 SocketChannel tcp;
-String address;
+String address, playerName;
+GameScene soloScene;
+OnlineScene onlineScene;
+HostScene hostScene;
+NetworkScene networkScene;
 
 void setup(){
     size(900, 900, OPENGL);
@@ -23,34 +28,60 @@ void setup(){
  */
 void initScene(){
     frameRate(60);
+    loadData();
+
     player = new Ship();
     scene = 0;
     level = 1;
     buttons = new ArrayList<MenuButton>();
+    address = "127.0.0.1";
+    port = 8765;
+
+    //Set up buttons
     play = new MenuButton(width/2, height/2 - 100, 2.5, "Solo", 0, 1);
-    play.setPrimary(51,51,51);
-    play.setSecondary(146,221,200);
-    playOnline = new MenuButton(width/2, height/2, 2.5, "Online", 0, 2);
-    playOnline.setPrimary(51,51,51);
-    playOnline.setSecondary(146,221,200);
-    asteroids = new ArrayList<Asteroid>();
-    resetAstroids(level);
+    playOnline = new MenuButton(width/2, height/2, 2.5, "Online", 0, 3);
+    search = new MenuButton(width/2 - 175, height/2 + 300, 2, "Search", 3, 4);
+    host = new MenuButton(width/2 + 175, height/2 + 300, 2, "Host", 3, 5);
+    network = new MenuButton(width/2, height/2 + 100, 2.5, "Network", 0, 6);
+    menu = new MenuButton(width/2, height/2 + 300, 2.5, "Menu", 6, 0);
+
     buttons.add(play);
     buttons.add(playOnline);
+    buttons.add(search);
+    buttons.add(host);
+    buttons.add(network);
+    buttons.add(menu);
 
-    try{
-        //Connnect to UDP
-        udp = DatagramChannel.open();
-        address = "127.0.0.1";
-        port = 8765;
-        //Connect to TCP
-        tcp = SocketChannel.open();
-        tcp.connect(new InetSocketAddress(address, port));
-    }
-    catch(Exception e){
-        System.out.println("Error in initScene: " + e);
+    nameBox = new TextBox(width/2, height/2 - 100, 3, "Name:");
+    nameBox.setText(playerName);
+    nameBox.setLimit(5);
+
+    addressBox = new TextBox(width/2, height/2, 3, "IP:");
+    addressBox.setText(address);
+
+    portBox = new TextBox(width/2, height/2 + 100, 3, "Port:");
+    portBox.setText(port + "");
+    portBox.setInt();
+    portBox.setLimit(6);
+
+    asteroids = new ArrayList<Asteroid>();
+    soloScene = new GameScene();
+    onlineScene = new OnlineScene();
+    hostScene = new HostScene();
+    networkScene = new NetworkScene();
+}
+
+void loadData(){
+    String[] data = loadStrings("Network.txt");
+    if (data == null){
+        String[] tempData = {"Temp", "127.0.0.1", "8765"};
+        saveStrings("Network.txt", tempData);
+        data = loadStrings("Network.txt");
     }
 
+    playerName = data[0];
+    address = data[1];
+    port = Integer.parseInt(data[2]);
 }
 
 /**
@@ -62,10 +93,16 @@ void draw(){
             scene0();
             break;
         case 1:
-            scene1();
+            soloScene.show();
             break;
         case 2:
-            scene2();
+            onlineScene.show();
+            break;
+        case 3:
+            hostScene.show();
+            break;
+        case 6:
+            networkScene.show();
             break;
     }
     // fill(255);
@@ -79,91 +116,7 @@ void scene0(){
     background(51);
     play.show();
     playOnline.show();
-}
-
-/**
- * Scene for the actual game.
- */
-void scene1(){
-    background(0);
-    showScene1Text();
-    if(!player.show()){
-        scene = 0;
-        return;
-    }
-    showAsteroids();
-    checkLevel();
-}
-
-void scene2(){
-    background(0);
-    showScene1Text();
-    if(!player.show()){
-        scene = 0;
-        return;
-    }
-    showAsteroids();
-    checkLevel();
-    try{
-        ByteBuffer buff = ByteBuffer.wrap("This is a test".getBytes());
-        //udp.send(buff, new InetSocketAddress(address, port));
-    }
-    catch(Exception e){
-        System.out.println("Error in sending coordinate packets: " + e);
-    }
-}
-
-void showScene1Text(){
-    String levelString = "Level " + level + "\n" + player.getScore();
-    fill(255);
-    text(levelString, width/2, 50);
-    String liveString = "";
-    for (int i = 0; i < player.getLives(); i++){
-        liveString += " | ";
-    }
-    text(liveString, 50, 50);
-}
-
-/**
- * Display all of the asteroids to the screen.
- */
-void showAsteroids(){
-    for (Asteroid a : asteroids){
-        a.show();
-    }
-}
-
-void resetAstroids(int level){
-    asteroids.clear();
-    int num = 2 + (level * 2) ;
-    for (int i = 0; i < num; i++){
-        float tempX = random(50, width - 50);
-        float tempY = random(50, height/2 - 150) + ((height/2 + 150) * int(random(0, 2)));
-        asteroids.add(new Asteroid(tempX, tempY, 3, player));
-        player.resetPos();
-    }
-}
-
-void checkLevel(){
-    if (asteroids.size() < 1){
-        level++;
-        resetAstroids(level);
-    }
-}
-
-void sendName(){
-    try{
-        String name = "Soco";
-        ByteBuffer b = ByteBuffer.wrap(name.getBytes());
-        tcp.write(b);
-    }
-    catch (Exception e){
-        System.out.println("Error in sending name: " + e);
-    }
-}
-
-void sendPackets(){
-
+    network.show();
 }
 
 /**
@@ -172,15 +125,24 @@ void sendPackets(){
 void buttonsCLicked(){
     for (MenuButton mb : buttons){
         int tempScene = mb.setClicked(scene);
-        if (tempScene > 0){
+        if (tempScene >= 0){
+            if (tempScene == 5){
+                hostScene.setHost();
+                return;
+            }
+            else if (tempScene == 4){
+                hostScene.setSearch();
+                return;
+            }
+
+            if (tempScene == 1){
+                soloScene = new GameScene();
+            }
+            else if (tempScene == 2){
+                onlineScene = new OnlineScene();
+                hostScene.sendStartPacket();
+            }
             scene = tempScene;
-            if (tempScene == 1 || tempScene == 2){
-                level = 1;
-                resetAstroids(level);
-            }
-            if (tempScene == 2){
-                sendName();
-            }
         }
     }
 }
@@ -190,7 +152,10 @@ void buttonsCLicked(){
  */
 void mousePressed(){
     buttonsCLicked();
-    player.processClick();
+    nameBox.setClicked();
+    addressBox.setClicked();
+    portBox.setClicked();
+    //player.processClick();
 }
 
 /**
@@ -205,6 +170,9 @@ void keyReleased(){
  */
 void keyPressed(){
     player.processButtonPress(key);
-    if (key == 'r')
-        resetAstroids(level);
+    if (scene == 6){
+        nameBox.processKey(keyCode);
+        addressBox.processKey(keyCode);
+        portBox.processKey(keyCode);
+    }
 }

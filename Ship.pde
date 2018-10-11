@@ -110,6 +110,11 @@ public class Ship{
         lives = maxLives;
         dead = false;
         score = 0;
+        bullets.clear();
+    }
+
+    public void clearBullets(){
+        bullets.clear();
     }
 
     /**
@@ -170,7 +175,7 @@ public class Ship{
 
     private void checkNoHit(){
         if(noHit){
-            if (millis() - timeStamp > 5000)
+            if (millis() - timeStamp > 3000)
                 noHit = false;
         }
     }
@@ -267,6 +272,10 @@ public class Ship{
 
     public float getY(){
         return y;
+    }
+
+    public float getAngle(){
+        return angle;
     }
 
     public float getSize(){
