@@ -199,7 +199,7 @@ public void keyPressed(){
     }
 }
 public class Asteroid{
-    float x, y, size;
+    float x, y, size, angle;
     int level, maxLevel;
     PVector velocity;
     Ship p;
@@ -218,7 +218,8 @@ public class Asteroid{
         this.level = level;
         this.maxLevel = 3;
         this.p = p;
-        this.velocity = PVector.fromAngle(random(-PI, PI));
+        this.angle = random(-PI, PI);
+        this.velocity = PVector.fromAngle(angle);
         this.velocity.mult(((maxLevel+1) - level) * 0.8f);
     }
 
@@ -297,6 +298,14 @@ public class Asteroid{
 
     public float getY(){
         return y;
+    }
+
+    public int getLevel(){
+        return level;
+    }
+
+    public float getAngle(){
+        return angle;
     }
 
     public float getSize(){
@@ -894,13 +903,13 @@ public class OnlineScene extends GameScene{
         if(isHost)
             super.checkLevel();
 
-        try{
-            String temp = String.format("%s,%.3f,%.3f,%.3f", playerName, player.getX(), player.getY(), player.getAngle());
-            ByteBuffer buff = ByteBuffer.wrap(temp.getBytes());
-            udp.send(buff, socket);
-        }
-        catch(Exception e){
-            System.out.println("Error in OnlineScene show: \n" + e);
+        sendLoc();
+    }
+
+    private void sendAsteroids(){
+        String packString = playerName + ",3";
+        for (Asteroid a : asteroids){
+            // packString += Strinf.format(",%.2f,%.2f,%.2f,%d", a.getX(), a.getY(), a.getAngle(), a.getLevel());
         }
     }
 
@@ -930,6 +939,17 @@ public class OnlineScene extends GameScene{
             System.out.println("Error in Online UDP thread: \n" + e);
         }
         System.out.println("Thread closed.");
+    }
+
+    private void sendLoc(){
+        try{
+            String temp = String.format("%s,%.3f,%.3f,%.3f", playerName, player.getX(), player.getY(), player.getAngle());
+            ByteBuffer buff = ByteBuffer.wrap(temp.getBytes());
+            udp.send(buff, socket);
+        }
+        catch(Exception e){
+            System.out.println("Error in OnlineScene show: \n" + e);
+        }
     }
 
     private void setTeamLoc(String name, String xString, String yString, String angleString){
