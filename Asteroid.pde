@@ -1,5 +1,5 @@
 public class Asteroid{
-    float x, y, size;
+    float x, y, size, angle;
     int level, maxLevel;
     PVector velocity;
     Ship p;
@@ -18,7 +18,8 @@ public class Asteroid{
         this.level = level;
         this.maxLevel = 3;
         this.p = p;
-        this.velocity = PVector.fromAngle(random(-PI, PI));
+        this.angle = random(-PI, PI);
+        this.velocity = PVector.fromAngle(angle);
         this.velocity.mult(((maxLevel+1) - level) * 0.8);
     }
 
@@ -97,6 +98,14 @@ public class Asteroid{
 
     public float getY(){
         return y;
+    }
+
+    public int getLevel(){
+        return level;
+    }
+
+    public float getAngle(){
+        return angle;
     }
 
     public float getSize(){

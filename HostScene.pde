@@ -194,7 +194,7 @@ public class HostScene{
             host.setText("Host");
             host.setScene(5);
             hostScene = false;
-            onlineScene = new OnlineScene();
+            onlineScene = new OnlineScene(false);
             onlineScene.setTeam(clientList);
             scene = 2;
         }

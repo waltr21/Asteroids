@@ -3,8 +3,12 @@ public class OnlineScene extends GameScene{
     InetSocketAddress socket;
     ArrayList<TeamShip> teammates;
 
-    public OnlineScene(){
+    public OnlineScene(boolean host){
         super();
+        this.isHost = host;
+        if (!host){
+            asteroids.clear();
+        }
         teammates = new ArrayList<TeamShip>();
         try{
             udp = DatagramChannel.open();
@@ -47,7 +51,8 @@ public class OnlineScene extends GameScene{
             return;
         }
         super.showAsteroids();
-        super.checkLevel();
+        if(isHost)
+            super.checkLevel();
 
         try{
             String temp = String.format("%s,%.3f,%.3f,%.3f", playerName, player.getX(), player.getY(), player.getAngle());
@@ -56,6 +61,13 @@ public class OnlineScene extends GameScene{
         }
         catch(Exception e){
             System.out.println("Error in OnlineScene show: \n" + e);
+        }
+    }
+
+    private void sendAsteroids(){
+        String packString = playerName + ",3";
+        for (Asteroid a : asteroids){
+            packString += Strinf.format(",%.2f,%.2f,%.2f,%d", a.getX(), a.getY(), a.getAngle(), a.getLevel());
         }
     }
 

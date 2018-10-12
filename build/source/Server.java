@@ -231,6 +231,7 @@ public class Server{
                 try{
                     //System.out.println("Sent packet");
                     ns.socketC.write(buffer);
+                    break;
                 }
                 catch(Exception e){
                     System.out.println(e);

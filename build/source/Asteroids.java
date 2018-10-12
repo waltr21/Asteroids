@@ -88,7 +88,7 @@ public void initScene(){
 
     asteroids = new ArrayList<Asteroid>();
     soloScene = new GameScene();
-    onlineScene = new OnlineScene();
+    //onlineScene = new OnlineScene();
     hostScene = new HostScene();
     networkScene = new NetworkScene();
 }
@@ -161,7 +161,7 @@ public void buttonsCLicked(){
                 soloScene = new GameScene();
             }
             else if (tempScene == 2){
-                onlineScene = new OnlineScene();
+                onlineScene = new OnlineScene(true);
                 hostScene.sendStartPacket();
             }
             scene = tempScene;
@@ -641,7 +641,7 @@ public class HostScene{
             host.setText("Host");
             host.setScene(5);
             hostScene = false;
-            onlineScene = new OnlineScene();
+            onlineScene = new OnlineScene(false);
             onlineScene.setTeam(clientList);
             scene = 2;
         }
@@ -843,8 +843,12 @@ public class OnlineScene extends GameScene{
     InetSocketAddress socket;
     ArrayList<TeamShip> teammates;
 
-    public OnlineScene(){
+    public OnlineScene(boolean host){
         super();
+        this.isHost = host;
+        if (!host){
+            asteroids.clear();
+        }
         teammates = new ArrayList<TeamShip>();
         try{
             udp = DatagramChannel.open();
@@ -887,7 +891,8 @@ public class OnlineScene extends GameScene{
             return;
         }
         super.showAsteroids();
-        super.checkLevel();
+        if(isHost)
+            super.checkLevel();
 
         try{
             String temp = String.format("%s,%.3f,%.3f,%.3f", playerName, player.getX(), player.getY(), player.getAngle());

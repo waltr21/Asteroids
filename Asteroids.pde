@@ -66,7 +66,7 @@ void initScene(){
 
     asteroids = new ArrayList<Asteroid>();
     soloScene = new GameScene();
-    onlineScene = new OnlineScene();
+    //onlineScene = new OnlineScene();
     hostScene = new HostScene();
     networkScene = new NetworkScene();
 }
@@ -139,7 +139,7 @@ void buttonsCLicked(){
                 soloScene = new GameScene();
             }
             else if (tempScene == 2){
-                onlineScene = new OnlineScene();
+                onlineScene = new OnlineScene(true);
                 hostScene.sendStartPacket();
             }
             scene = tempScene;
