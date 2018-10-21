@@ -19,7 +19,7 @@ public class Ship{
         //Size of the ship.
         this.size = 20;
         this.angle = 0;
-        this.turnRadius = 0.08;
+        this.turnRadius = 0.1;
         this.deRate = 0.05;
         this.turn = false;
         this.accelerate = false;

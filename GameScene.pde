@@ -28,7 +28,7 @@ public class GameScene{
         for (int i = 0; i < num; i++){
             float tempX = random(50, width - 50);
             float tempY = random(50, height/2 - 150) + ((height/2 + 150) * int(random(0, 2)));
-            asteroids.add(new Asteroid(tempX, tempY, 3, player));
+            asteroids.add(new Asteroid(tempX, tempY, 3));
             player.resetPos();
             player.clearBullets();
         }

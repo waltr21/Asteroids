@@ -151,10 +151,12 @@ void buttonsCLicked(){
  * Mouse click handle.
  */
 void mousePressed(){
+    if(scene == 6){
+        nameBox.setClicked();
+        addressBox.setClicked();
+        portBox.setClicked();
+    }
     buttonsCLicked();
-    nameBox.setClicked();
-    addressBox.setClicked();
-    portBox.setClicked();
     //player.processClick();
 }
 

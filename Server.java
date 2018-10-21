@@ -129,8 +129,10 @@ public class Server{
             String name = splitMessage[0];
             addClient(name, sc);
             //If we are working with an init connect packet.
-            if (splitMessage[1].equals("0") || splitMessage[1].equals("2")){
+            if (splitMessage[1].equals("0") || splitMessage[1].equals("2") || splitMessage[1].equals("3")){
                 ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
+                System.out.println(message);
+
                 sendAllTCP(name, buffer);
             }
             if(splitMessage[1].equals("-1")){
@@ -229,6 +231,7 @@ public class Server{
         for (NameSocket ns : TCPclients){
             if (ns.name.equals(name)){
                 try{
+                    //Thread.sleep(100);
                     //System.out.println("Sent packet");
                     ns.socketC.write(buffer);
                     break;

@@ -1,3 +1,7 @@
+/**
+ * This class displays the Host/Search game scene. It is responsible for sending
+ * and parsing TCP packets to appropriatly start the game.
+ */
 public class HostScene{
     boolean searchBool, hostBool, threadMade, hostScene, error;
     String hostString, searchString, allClients;
@@ -138,6 +142,7 @@ public class HostScene{
             //System.out.println("Sent: " + packetString);
 
             ByteBuffer buffer2 = ByteBuffer.wrap(temp.getBytes());
+            Thread.sleep(100);
             tcp.write(buffer2);
             onlineScene.setTeam(clientList);
         }
