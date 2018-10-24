@@ -38,8 +38,13 @@ public class GameScene{
      * Display all of the asteroids to the screen.
      */
     private void showAsteroids(){
-        for (Asteroid a : asteroids){
-            a.show();
+        try{
+           for (Asteroid a : asteroids){
+               a.show();
+           }
+        }
+        catch(Exception e){
+            System.out.println("Exception in showAsteroids (gameScene): " + e);
         }
     }
 

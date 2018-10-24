@@ -144,6 +144,7 @@ public class HostScene{
             ByteBuffer buffer2 = ByteBuffer.wrap(temp.getBytes());
             Thread.sleep(100);
             tcp.write(buffer2);
+            onlineScene = new OnlineScene(true);
             onlineScene.setTeam(clientList);
         }
         catch(Exception e){
@@ -182,14 +183,13 @@ public class HostScene{
 
     private void processTCP(String packet){
         packet = packet.trim();
+        // System.out.println(packet);
         String[] splitMessage = packet.split(",");
         if (splitMessage[1].equals("0") && hostBool){
             addClient(splitMessage[0]);
             hostString = "Waiting for players...\n" + allClients;
         }
         if (splitMessage[1].equals("2")){
-            System.out.println(packet);
-            //System.out.println(splitMessage[2]);
             clientList.add(splitMessage[0]);
             for (int i = 2; i < splitMessage.length; i++){
                 if (!splitMessage[i].equals(playerName)){
@@ -202,6 +202,7 @@ public class HostScene{
             onlineScene = new OnlineScene(false);
             onlineScene.setTeam(clientList);
             scene = 2;
+
         }
     }
 

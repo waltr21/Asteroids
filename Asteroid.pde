@@ -66,10 +66,15 @@ public class Asteroid{
 
     public void explode(){
         if (level > 1){
-            int numChildren = 2;
+            int index = asteroids.indexOf(this);
+            onlineScene.sendRemove(index);
             asteroids.remove(this);
-            for (int i = 0; i < numChildren; i++){
-                asteroids.add(new Asteroid(x, y, level - 1));
+            for (int i = 0; i < 2; i++){
+                Asteroid newAsteroid = new Asteroid(x, y, level - 1);
+                asteroids.add(newAsteroid);
+                if (online){
+                    onlineScene.sendAsteroids(newAsteroid);
+                }
             }
         }
         else{

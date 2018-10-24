@@ -182,12 +182,21 @@ public class Ship{
 
     private void shoot(){
         if (bullets.size() < 4){
-            bullets.add(new Bullet(x, y, angle, this));
+            bullets.add(new Bullet(x, y, angle, true));
+            //Also send the bullet if we are online.
+            if (onlineScene != null){
+                onlineScene.sendBullet(x, y, angle);
+            }
         }
+
     }
 
     public void addScore(int s){
         score += s;
+    }
+
+    public void addBullet(Bullet b){
+        bullets.add(b);
     }
 
     /**

@@ -1,16 +1,16 @@
 public class Bullet{
     float x, y, angle, size;
     int count;
+    boolean owner;
     PVector velocity;
-    Ship p;
 
-    public Bullet(float x, float y, float angle, Ship p){
+    public Bullet(float x, float y, float angle, boolean owner){
         this.x = x;
         this.y = y;
         this.angle = angle - PI/2;
         this.size = 5;
         this.count = 0;
-        this.p = p;
+        this.owner = owner;
         this.velocity = PVector.fromAngle(this.angle);
         this.velocity.mult(8);
     }
@@ -48,7 +48,7 @@ public class Bullet{
         for (Asteroid a : asteroids){
             float distance = dist(a.getX(), a.getY(), x, y);
             if (distance < a.getSize()/2 + size/2){
-                p.addScore(a.getScore());
+                player.addScore(a.getScore());
                 a.explode();
                 count = 1000;
                 break;
@@ -65,7 +65,8 @@ public class Bullet{
         fill(255);
         ellipse(0, 0, size, size);
         popMatrix();
-        checkHit();
+        if (owner)
+            checkHit();
     }
 
     public float getX(){

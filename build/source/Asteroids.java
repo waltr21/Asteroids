@@ -8,6 +8,7 @@ import java.net.*;
 import java.nio.*; 
 import java.nio.channels.*; 
 import java.util.ArrayList; 
+import java.util.Arrays; 
 
 import java.util.HashMap; 
 import java.util.ArrayList; 
@@ -19,6 +20,7 @@ import java.io.OutputStream;
 import java.io.IOException; 
 
 public class Asteroids extends PApplet {
+
 
 
 
@@ -39,6 +41,7 @@ GameScene soloScene;
 OnlineScene onlineScene;
 HostScene hostScene;
 NetworkScene networkScene;
+boolean online;
 
 public void setup(){
     
@@ -58,6 +61,7 @@ public void initScene(){
     buttons = new ArrayList<MenuButton>();
     address = "127.0.0.1";
     port = 8765;
+    online = false;
 
     //Set up buttons
     play = new MenuButton(width/2, height/2 - 100, 2.5f, "Solo", 0, 1);
@@ -116,9 +120,11 @@ public void draw(){
             break;
         case 1:
             soloScene.show();
+            online = false;
             break;
         case 2:
             onlineScene.show();
+            online = true;
             break;
         case 3:
             hostScene.show();
@@ -161,7 +167,6 @@ public void buttonsCLicked(){
                 soloScene = new GameScene();
             }
             else if (tempScene == 2){
-                onlineScene = new OnlineScene(true);
                 hostScene.sendStartPacket();
             }
             scene = tempScene;
@@ -268,10 +273,21 @@ public class Asteroid{
 
     public void explode(){
         if (level > 1){
-            int numChildren = 2;
+            int index = asteroids.indexOf(this);
+            onlineScene.sendRemove(index);
             asteroids.remove(this);
-            for (int i = 0; i < numChildren; i++){
-                asteroids.add(new Asteroid(x, y, level - 1));
+            for (int i = 0; i < 2; i++){
+                Asteroid newAsteroid = new Asteroid(x, y, level - 1);
+                asteroids.add(newAsteroid);
+                if (online){
+                    onlineScene.sendAsteroids(newAsteroid);
+                    try{
+                        Thread.sleep(20);
+                    }
+                    catch(Exception e){
+                        System.out.println("Error in explode: " + e);
+                    }
+                }
             }
         }
         else{
@@ -329,16 +345,16 @@ public class Asteroid{
 public class Bullet{
     float x, y, angle, size;
     int count;
+    boolean owner;
     PVector velocity;
-    Ship p;
 
-    public Bullet(float x, float y, float angle, Ship p){
+    public Bullet(float x, float y, float angle, boolean owner){
         this.x = x;
         this.y = y;
         this.angle = angle - PI/2;
         this.size = 5;
         this.count = 0;
-        this.p = p;
+        this.owner = owner;
         this.velocity = PVector.fromAngle(this.angle);
         this.velocity.mult(8);
     }
@@ -376,7 +392,7 @@ public class Bullet{
         for (Asteroid a : asteroids){
             float distance = dist(a.getX(), a.getY(), x, y);
             if (distance < a.getSize()/2 + size/2){
-                p.addScore(a.getScore());
+                player.addScore(a.getScore());
                 a.explode();
                 count = 1000;
                 break;
@@ -393,7 +409,8 @@ public class Bullet{
         fill(255);
         ellipse(0, 0, size, size);
         popMatrix();
-        checkHit();
+        if (owner)
+            checkHit();
     }
 
     public float getX(){
@@ -445,8 +462,13 @@ public class GameScene{
      * Display all of the asteroids to the screen.
      */
     private void showAsteroids(){
-        for (Asteroid a : asteroids){
-            a.show();
+        try{
+           for (Asteroid a : asteroids){
+               a.show();
+           }
+        }
+        catch(Exception e){
+            System.out.println("Exception in showAsteroids (gameScene): " + e);
         }
     }
 
@@ -614,6 +636,7 @@ public class HostScene{
             ByteBuffer buffer2 = ByteBuffer.wrap(temp.getBytes());
             Thread.sleep(100);
             tcp.write(buffer2);
+            onlineScene = new OnlineScene(true);
             onlineScene.setTeam(clientList);
         }
         catch(Exception e){
@@ -652,14 +675,13 @@ public class HostScene{
 
     private void processTCP(String packet){
         packet = packet.trim();
+        // System.out.println(packet);
         String[] splitMessage = packet.split(",");
         if (splitMessage[1].equals("0") && hostBool){
             addClient(splitMessage[0]);
             hostString = "Waiting for players...\n" + allClients;
         }
         if (splitMessage[1].equals("2")){
-            System.out.println(packet);
-            //System.out.println(splitMessage[2]);
             clientList.add(splitMessage[0]);
             for (int i = 2; i < splitMessage.length; i++){
                 if (!splitMessage[i].equals(playerName)){
@@ -672,6 +694,7 @@ public class HostScene{
             onlineScene = new OnlineScene(false);
             onlineScene.setTeam(clientList);
             scene = 2;
+
         }
     }
 
@@ -915,7 +938,13 @@ public class OnlineScene extends GameScene{
             asteroids.clear();
         }
         else{
-            //sendAsteroids();
+            try{
+                sendAllAsteroids();
+            }
+            catch (Exception e){
+                System.out.println("Exception with sleep: " + e);
+            }
+
         }
     }
 
@@ -963,19 +992,41 @@ public class OnlineScene extends GameScene{
         sendLoc();
     }
 
-    /**
-     * Send all of the asteroids XY and velocity to the other clients.
-     * (Should only be used for the host.)
-     */
-    private void sendAsteroids(){
+    public void sendBullet(float x, float y, float angle){
+        try{
+            String packetString = String.format("%s,4,%.1f,%.1f,%.3f", playerName, x, y, angle);
+            ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
+            tcp.write(buffer);
+        }
+        catch(Exception e){
+            System.out.println("Error in sendBullet: " + e);
+        }
+    }
+
+
+    private void sendAllAsteroids(){
         String packString = playerName + ",3";
         for (Asteroid a : asteroids){
-            packString += String.format(",%.1f|%.1f|%.1f|%d", a.getX(), a.getY(), a.getAngle(), a.getLevel());
+            packString += String.format(",%.1f!%.1f!%.2f!%d", a.getX(), a.getY(), a.getAngle(), a.getLevel());
         }
         ByteBuffer buffer = ByteBuffer.wrap(packString.getBytes());
         try{
             tcp.write(buffer);
-            System.out.println("Sent: " + packString);
+            //System.out.println("Sent: " + packString);
+        }
+        catch(Exception e){
+            System.out.println("Error in send asteroids: " + e);
+        }
+    }
+
+    public void sendAsteroids(Asteroid a){
+        String packString = playerName + ",3";
+        packString += String.format(",%.1f!%.1f!%.2f!%d", a.getX(), a.getY(), a.getAngle(), a.getLevel());
+
+        ByteBuffer buffer = ByteBuffer.wrap(packString.getBytes());
+        try{
+            tcp.write(buffer);
+            //System.out.println("Sent: " + packString);
         }
         catch(Exception e){
             System.out.println("Error in send asteroids: " + e);
@@ -1051,37 +1102,62 @@ public class OnlineScene extends GameScene{
         }
     }
 
+    public void sendRemove(int index){
+        try{
+            String packString = playerName + ",5," + index;
+            ByteBuffer buffer = ByteBuffer.wrap(packString.getBytes());
+            tcp.write(buffer);
+        }
+        catch(Exception e){
+            System.out.println("Error in send asteroids: " + e);
+        }
+    }
+
     private void runTCP(){
         System.out.println("Thread Made.");
         //Keep searching while we are in this scene.
         while(true){
+            String temp = "";
             try{
                 ByteBuffer buffer = ByteBuffer.allocate(1024);
                 tcp.read(buffer);
-                String temp = new String (buffer.array()).trim();
-                // System.out.println("new String(buffer.array()).trim()");
+                temp = new String (buffer.array()).trim();
                 processTCP(temp);
+
+                // System.out.println("new String(buffer.array()).trim()");
             }
             catch(Exception e){
-                System.out.println(e);
+                System.out.println("Error in runTCP (onlineScene): " + e);
                 break;
             }
+
         }
         System.out.println("Thread closed.");
     }
 
     private void processTCP(String packet){
+        // System.out.println(packet);
         packet = packet.trim();
         String[] splitMessage = packet.split(",");
-        System.out.println(packet);
+        //System.out.println(packet);
         if (splitMessage[1].equals("3")){
             setAsteroids(splitMessage);
+        }
+        if (splitMessage[1].equals("4")){
+            float tempX = Float.parseFloat(splitMessage[2]);
+            float tempY = Float.parseFloat(splitMessage[3]);
+            float tempAnle = Float.parseFloat(splitMessage[4]);
+            player.addBullet(new Bullet(tempX, tempY, tempAnle, false));
+        }
+        if (splitMessage[1].equals("5")){
+            int tempIndex = Integer.parseInt(splitMessage[2]);
+            asteroids.remove(tempIndex);
         }
     }
 
     private void setAsteroids(String[] splitMessage){
         for (int i = 2; i < splitMessage.length; i++){
-            String[] temp = splitMessage[i].split("|");
+            String[] temp = splitMessage[i].split("!");
             float tempX = Float.parseFloat(temp[0]);
             float tempY = Float.parseFloat(temp[1]);
             float tempAngle = Float.parseFloat(temp[2]);
@@ -1274,12 +1350,21 @@ public class Ship{
 
     private void shoot(){
         if (bullets.size() < 4){
-            bullets.add(new Bullet(x, y, angle, this));
+            bullets.add(new Bullet(x, y, angle, true));
+            //Also send the bullet if we are online.
+            if (onlineScene != null){
+                onlineScene.sendBullet(x, y, angle);
+            }
         }
+
     }
 
     public void addScore(int s){
         score += s;
+    }
+
+    public void addBullet(Bullet b){
+        bullets.add(b);
     }
 
     /**

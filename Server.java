@@ -105,13 +105,15 @@ public class Server{
                 //SocketChannel sc = tcp.accept();
                 ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
                 sc.read(buffer);
+                //Thread.sleep(30);
                 String tempMessage = new String(buffer.array()).trim();
-                parseTCP(tempMessage, sc);
                 if (tempMessage.length() < 1){
                     System.out.println("Lost connection to client. Breaking...");
                     removeClient(sc);
                     break;
                 }
+
+                parseTCP(tempMessage, sc);
             }
         }
         //Exceptions.
@@ -129,15 +131,21 @@ public class Server{
             String name = splitMessage[0];
             addClient(name, sc);
             //If we are working with an init connect packet.
-            if (splitMessage[1].equals("0") || splitMessage[1].equals("2") || splitMessage[1].equals("3")){
+            // if (splitMessage[1].equals("0") || splitMessage[1].equals("2") || splitMessage[1].equals("3")){
+            //     ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
+            //     System.out.println(message);
+            //
+            //     sendAllTCP(name, buffer);
+            // }
+            if(splitMessage[1].equals("-1")){
+                ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
+                sendSelf(name, buffer);
+            }
+            else{
                 ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
                 System.out.println(message);
 
                 sendAllTCP(name, buffer);
-            }
-            if(splitMessage[1].equals("-1")){
-                ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
-                sendSelf(name, buffer);
             }
         }
 
@@ -176,6 +184,7 @@ public class Server{
             if (!ns.name.equals(name)){
                 try{
                     //System.out.println("Sent packet");
+                    Thread.sleep(50);
                     ns.socketC.write(buffer);
                 }
                 catch(Exception e){

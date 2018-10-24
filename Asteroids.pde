@@ -3,6 +3,7 @@ import java.net.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 ArrayList<MenuButton> buttons;
 ArrayList<Asteroid> asteroids;
@@ -17,6 +18,7 @@ GameScene soloScene;
 OnlineScene onlineScene;
 HostScene hostScene;
 NetworkScene networkScene;
+boolean online;
 
 void setup(){
     size(900, 900, OPENGL);
@@ -36,6 +38,7 @@ void initScene(){
     buttons = new ArrayList<MenuButton>();
     address = "127.0.0.1";
     port = 8765;
+    online = false;
 
     //Set up buttons
     play = new MenuButton(width/2, height/2 - 100, 2.5, "Solo", 0, 1);
@@ -94,9 +97,11 @@ void draw(){
             break;
         case 1:
             soloScene.show();
+            online = false;
             break;
         case 2:
             onlineScene.show();
+            online = true;
             break;
         case 3:
             hostScene.show();
@@ -139,7 +144,6 @@ void buttonsCLicked(){
                 soloScene = new GameScene();
             }
             else if (tempScene == 2){
-                onlineScene = new OnlineScene(true);
                 hostScene.sendStartPacket();
             }
             scene = tempScene;
