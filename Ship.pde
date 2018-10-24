@@ -19,7 +19,7 @@ public class Ship{
         //Size of the ship.
         this.size = 20;
         this.angle = 0;
-        this.turnRadius = 0.08;
+        this.turnRadius = 0.1;
         this.deRate = 0.05;
         this.turn = false;
         this.accelerate = false;
@@ -182,12 +182,21 @@ public class Ship{
 
     private void shoot(){
         if (bullets.size() < 4){
-            bullets.add(new Bullet(x, y, angle, this));
+            bullets.add(new Bullet(x, y, angle, true));
+            //Also send the bullet if we are online.
+            if (onlineScene != null){
+                onlineScene.sendBullet(x, y, angle);
+            }
         }
+
     }
 
     public void addScore(int s){
         score += s;
+    }
+
+    public void addBullet(Bullet b){
+        bullets.add(b);
     }
 
     /**

@@ -1,24 +1,33 @@
 public class Asteroid{
-    float x, y, size;
+    float x, y, size, angle;
     int level, maxLevel;
     PVector velocity;
-    Ship p;
 
     /**
      * Constructor for the Asteroid class.
      * @param x     X pos of the asteroid
      * @param y     Y pos of the asteroid
      * @param level Level of asteroid (1-3)
-     * @param p     Current player (Used for x/y refernecing)
      */
-    public Asteroid(float x, float y, int level, Ship p){
+    public Asteroid(float x, float y, int level){
         this.x = x;
         this.y = y;
         this.size = 30 * level;
         this.level = level;
         this.maxLevel = 3;
-        this.p = p;
-        this.velocity = PVector.fromAngle(random(-PI, PI));
+        this.angle = random(-PI, PI);
+        this.velocity = PVector.fromAngle(angle);
+        this.velocity.mult(((maxLevel+1) - level) * 0.8);
+    }
+
+    public Asteroid(float x, float y, float a, int level){
+        this.x = x;
+        this.y = y;
+        this.size = 30 * level;
+        this.level = level;
+        this.maxLevel = 3;
+        this.angle = a;
+        this.velocity = PVector.fromAngle(angle);
         this.velocity.mult(((maxLevel+1) - level) * 0.8);
     }
 
@@ -48,19 +57,24 @@ public class Asteroid{
     }
 
     public void checkHit(){
-        float distance = dist(x, y, p.getX(), p.getY());
+        float distance = dist(x, y, player.getX(), player.getY());
         //System.out.println(distance);
-        if (distance < size/2 + p.getSize()){
-            p.setHit();
+        if (distance < size/2 + player.getSize()){
+            player.setHit();
         }
     }
 
     public void explode(){
         if (level > 1){
-            int numChildren = 2;
+            int index = asteroids.indexOf(this);
+            onlineScene.sendRemove(index);
             asteroids.remove(this);
-            for (int i = 0; i < numChildren; i++){
-                asteroids.add(new Asteroid(x, y, level - 1, player));
+            for (int i = 0; i < 2; i++){
+                Asteroid newAsteroid = new Asteroid(x, y, level - 1);
+                asteroids.add(newAsteroid);
+                if (online){
+                    onlineScene.sendAsteroids(newAsteroid);
+                }
             }
         }
         else{
@@ -97,6 +111,18 @@ public class Asteroid{
 
     public float getY(){
         return y;
+    }
+
+    public int getLevel(){
+        return level;
+    }
+
+    public float getAngle(){
+        return angle;
+    }
+
+    public void setAngle(float a){
+        angle = a;
     }
 
     public float getSize(){

@@ -34,8 +34,8 @@ public class TeamShip{
         triangle(-size, size, 0, -size - 5, size, size);
         fill(255);
         textSize(20);
-        text(name, 0, size + 25);
 
         popMatrix();
+        text(name, x, y + 30 + size);
     }
 }

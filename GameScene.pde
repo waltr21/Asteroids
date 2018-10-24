@@ -28,7 +28,7 @@ public class GameScene{
         for (int i = 0; i < num; i++){
             float tempX = random(50, width - 50);
             float tempY = random(50, height/2 - 150) + ((height/2 + 150) * int(random(0, 2)));
-            asteroids.add(new Asteroid(tempX, tempY, 3, player));
+            asteroids.add(new Asteroid(tempX, tempY, 3));
             player.resetPos();
             player.clearBullets();
         }
@@ -38,8 +38,13 @@ public class GameScene{
      * Display all of the asteroids to the screen.
      */
     private void showAsteroids(){
-        for (Asteroid a : asteroids){
-            a.show();
+        try{
+           for (Asteroid a : asteroids){
+               a.show();
+           }
+        }
+        catch(Exception e){
+            System.out.println("Exception in showAsteroids (gameScene): " + e);
         }
     }
 
