@@ -1,6 +1,6 @@
 public class Asteroid{
-    float x, y, size, angle;
-    int level, maxLevel;
+    float x, y, size, angle, maxLevel;
+    int level;
     PVector velocity;
 
     /**
@@ -17,7 +17,7 @@ public class Asteroid{
         this.maxLevel = 3;
         this.angle = random(-PI, PI);
         this.velocity = PVector.fromAngle(angle);
-        this.velocity.mult(((maxLevel+1) - level) * 0.8);
+        this.velocity.mult( (float) ((maxLevel+1) - level) * 0.8);
     }
 
     public Asteroid(float x, float y, float a, int level){

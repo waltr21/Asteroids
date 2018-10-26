@@ -55,10 +55,6 @@ public class Server{
         }
     }
 
-    // private void connectThread(){
-    //
-    // }
-
     private void runUDP(){
         try{
             //Bind to the port number.

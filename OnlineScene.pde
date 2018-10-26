@@ -118,6 +118,7 @@ public class OnlineScene extends GameScene{
         for (Asteroid a : asteroids){
             packString += String.format(",%.1f!%.1f!%.2f!%d", a.getX(), a.getY(), a.getAngle(), a.getLevel());
         }
+        packString += "~";
         ByteBuffer buffer = ByteBuffer.wrap(packString.getBytes());
         try{
             tcp.write(buffer);
@@ -131,7 +132,7 @@ public class OnlineScene extends GameScene{
     public void sendAsteroids(Asteroid a){
         String packString = playerName + ",3";
         packString += String.format(",%.1f!%.1f!%.2f!%d", a.getX(), a.getY(), a.getAngle(), a.getLevel());
-
+        packString += "~";
         ByteBuffer buffer = ByteBuffer.wrap(packString.getBytes());
         try{
             tcp.write(buffer);
@@ -214,6 +215,7 @@ public class OnlineScene extends GameScene{
     public void sendRemove(int index){
         try{
             String packString = playerName + ",5," + index;
+            packString += "~";
             ByteBuffer buffer = ByteBuffer.wrap(packString.getBytes());
             tcp.write(buffer);
         }
