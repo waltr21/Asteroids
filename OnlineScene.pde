@@ -5,7 +5,7 @@
  * to update the location of the other players in the game.
  */
 public class OnlineScene extends GameScene{
-    boolean isHost;
+    boolean isHost, temp;
     InetSocketAddress socket;
     ArrayList<TeamShip> teammates;
 
@@ -17,6 +17,7 @@ public class OnlineScene extends GameScene{
     public OnlineScene(boolean host){
         super();
         this.isHost = host;
+        temp = true;
 
         player.setLives(1);
 
@@ -96,7 +97,7 @@ public class OnlineScene extends GameScene{
         //If we die go back to the main.
         //TODO Change to exit only if everyone is dead.
 
-        
+
 
         super.showAsteroids();
         if(isHost)
@@ -232,7 +233,7 @@ public class OnlineScene extends GameScene{
     private void runTCP(){
         System.out.println("Thread Made.");
         //Keep searching while we are in this scene.
-        while(true){
+        while(temp){
             String temp = "";
             try{
                 ByteBuffer buffer = ByteBuffer.allocate(1024);
@@ -244,7 +245,6 @@ public class OnlineScene extends GameScene{
             }
             catch(Exception e){
                 System.out.println("Error in runTCP (onlineScene): " + e);
-                break;
             }
 
         }

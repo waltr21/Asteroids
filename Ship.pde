@@ -182,7 +182,7 @@ public class Ship{
     }
 
     private void shoot(){
-        if (bullets.size() < 4){
+        if (bullets.size() < 40){
             addBullet(new Bullet(x, y, angle));
             //Also send the bullet if we are online.
             if (onlineScene != null){
