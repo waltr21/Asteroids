@@ -45,8 +45,10 @@ public class OnlineScene extends GameScene{
         //If we are not the host then we do not want to generate our own asteroids.
         if (!host){
             asteroids.clear();
+            player.setHost(false);
         }
         else{
+            player.setHost(true);
             try{
                 sendAllAsteroids();
             }
@@ -104,6 +106,7 @@ public class OnlineScene extends GameScene{
     public void sendBullet(float x, float y, float angle){
         try{
             String packetString = String.format("%s,4,%.1f,%.1f,%.3f", playerName, x, y, angle);
+            packetString += "~";
             ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
             tcp.write(buffer);
         }
@@ -252,13 +255,21 @@ public class OnlineScene extends GameScene{
         String[] splitMessage = packet.split(",");
         //System.out.println(packet);
         if (splitMessage[1].equals("3")){
+            asteroids.clear();
+            System.out.println(asteroids.size());
             setAsteroids(splitMessage);
         }
         if (splitMessage[1].equals("4")){
             float tempX = Float.parseFloat(splitMessage[2]);
             float tempY = Float.parseFloat(splitMessage[3]);
             float tempAnle = Float.parseFloat(splitMessage[4]);
-            player.addBullet(new Bullet(tempX, tempY, tempAnle, false));
+
+            //If we are the host we keep track of bullet hits
+            if (isHost)
+                player.addBullet(new Bullet(tempX, tempY, tempAnle));
+            //Else we just send the bullets.
+            else
+                player.addBullet(new Bullet(tempX, tempY, tempAnle));
         }
         if (splitMessage[1].equals("5")){
             int tempIndex = Integer.parseInt(splitMessage[2]);

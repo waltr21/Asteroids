@@ -2,7 +2,7 @@ public class Ship{
     float x, y, size, angle, turnRadius, deRate;
     ArrayList<Character> pressedChars;
     ArrayList<Bullet> bullets;
-    boolean turn, accelerate, dead, noHit;
+    boolean turn, accelerate, dead, noHit, host;
     long timeStamp;
     char k;
     int lives, maxLives, score;
@@ -25,6 +25,7 @@ public class Ship{
         this.accelerate = false;
         this.dead = false;
         this.noHit = false;
+        this.host = false;
         this.maxLives = 3;
         this.lives = maxLives;
         this.score = 0;
@@ -182,7 +183,7 @@ public class Ship{
 
     private void shoot(){
         if (bullets.size() < 4){
-            bullets.add(new Bullet(x, y, angle, true));
+            addBullet(new Bullet(x, y, angle));
             //Also send the bullet if we are online.
             if (onlineScene != null){
                 onlineScene.sendBullet(x, y, angle);
@@ -196,6 +197,11 @@ public class Ship{
     }
 
     public void addBullet(Bullet b){
+        if (host)
+            b.setOwner(true);
+        else
+            b.setOwner(false);
+
         bullets.add(b);
     }
 
@@ -270,6 +276,11 @@ public class Ship{
             accelerate = false;
         }
     }
+
+    public void setHost(boolean b){
+        host = b;
+    }
+
 
     public void processClick(){
         shoot();

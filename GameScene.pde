@@ -4,6 +4,7 @@ public class GameScene{
     public GameScene(){
         level = 1;
         resetAstroids(level);
+        player.setHost(true);
     }
 
     /**
