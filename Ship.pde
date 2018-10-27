@@ -306,6 +306,10 @@ public class Ship{
         return lives;
     }
 
+    public void setLives(int l){
+        lives = l;
+    }
+
     public int getScore(){
         return score;
     }

@@ -18,6 +18,8 @@ public class OnlineScene extends GameScene{
         super();
         this.isHost = host;
 
+        player.setLives(1);
+
         teammates = new ArrayList<TeamShip>();
         //Connect to the DatagramChannel.
         try{
@@ -90,12 +92,12 @@ public class OnlineScene extends GameScene{
         background(0);
         super.showText();
         showTeam();
+        player.show();
         //If we die go back to the main.
         //TODO Change to exit only if everyone is dead.
-        if(!player.show()){
-            scene = 0;
-            return;
-        }
+
+        
+
         super.showAsteroids();
         if(isHost)
             super.checkLevel();
