@@ -103,7 +103,7 @@ public class Server{
         for (int i = 0; i < splitMessage.length; i++){
             parseTCP(splitMessage[i], sc);
             try{
-                Thread.sleep(10);
+                Thread.sleep(15);
             }
             catch(Exception e){
                 System.out.println("Error in splitPackets: " + e);
@@ -157,7 +157,7 @@ public class Server{
             }
             else{
                 ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
-                System.out.println(message);
+                //System.out.println(message);
 
                 sendAllTCP(name, buffer);
             }
@@ -200,6 +200,7 @@ public class Server{
                     //System.out.println("Sent packet");
                     Thread.sleep(50);
                     ns.socketC.write(buffer);
+                    buffer.flip();
                 }
                 catch(Exception e){
                     System.out.println(e);
