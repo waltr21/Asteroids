@@ -94,6 +94,24 @@ public class Server{
         }
     }
 
+    private void splitPackets(String message, SocketChannel sc){
+        String[] splitMessage = message.split("~");
+        boolean pause = false;
+        if (splitMessage.length > 1)
+            pause = true;
+
+        for (int i = 0; i < splitMessage.length; i++){
+            parseTCP(splitMessage[i], sc);
+            try{
+                Thread.sleep(15);
+            }
+            catch(Exception e){
+                System.out.println("Error in splitPackets: " + e);
+            }
+        }
+
+    }
+
     private void runTCP(SocketChannel sc){
         try{
             //Continue to loop and search for packets.
@@ -109,7 +127,7 @@ public class Server{
                     break;
                 }
 
-                parseTCP(tempMessage, sc);
+                splitPackets(tempMessage, sc);
             }
         }
         //Exceptions.
@@ -139,7 +157,7 @@ public class Server{
             }
             else{
                 ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
-                System.out.println(message);
+                //System.out.println(message);
 
                 sendAllTCP(name, buffer);
             }
@@ -182,6 +200,7 @@ public class Server{
                     //System.out.println("Sent packet");
                     Thread.sleep(50);
                     ns.socketC.write(buffer);
+                    buffer.flip();
                 }
                 catch(Exception e){
                     System.out.println(e);

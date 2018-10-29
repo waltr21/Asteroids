@@ -4,13 +4,13 @@ public class Bullet{
     boolean owner;
     PVector velocity;
 
-    public Bullet(float x, float y, float angle, boolean owner){
+    public Bullet(float x, float y, float angle){
         this.x = x;
         this.y = y;
         this.angle = angle - PI/2;
         this.size = 5;
         this.count = 0;
-        this.owner = owner;
+        this.owner = false;
         this.velocity = PVector.fromAngle(this.angle);
         this.velocity.mult(8);
     }
@@ -18,6 +18,10 @@ public class Bullet{
     public void travel(){
         x += velocity.x;
         y += velocity.y;
+    }
+
+    public void setOwner(boolean b){
+        owner = b;
     }
 
     public boolean bound(){
@@ -57,6 +61,7 @@ public class Bullet{
     }
 
     public void show(){
+        //System.out.println(owner);
         pushMatrix();
         ellipseMode(CENTER);
         translate(x, y);

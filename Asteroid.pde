@@ -70,16 +70,18 @@ public class Asteroid{
             for (int i = 0; i < 2; i++){
                 Asteroid newAsteroid = new Asteroid(x, y, level - 1);
                 asteroids.add(newAsteroid);
-                if (online){
-                    onlineScene.sendAsteroids(newAsteroid);
-                    onlineScene.sendRemove(index);
-                }
             }
+
             asteroids.remove(this);
+
         }
 
         else{
             asteroids.remove(this);
+        }
+
+        if (online){
+            onlineScene.sendAllAsteroids();
         }
     }
 

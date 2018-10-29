@@ -5,7 +5,7 @@
  * to update the location of the other players in the game.
  */
 public class OnlineScene extends GameScene{
-    boolean isHost;
+    boolean isHost, temp;
     InetSocketAddress socket;
     ArrayList<TeamShip> teammates;
 
@@ -17,6 +17,9 @@ public class OnlineScene extends GameScene{
     public OnlineScene(boolean host){
         super();
         this.isHost = host;
+        temp = true;
+
+        player.setLives(1);
 
         teammates = new ArrayList<TeamShip>();
         //Connect to the DatagramChannel.
@@ -45,8 +48,10 @@ public class OnlineScene extends GameScene{
         //If we are not the host then we do not want to generate our own asteroids.
         if (!host){
             asteroids.clear();
+            player.setHost(false);
         }
         else{
+            player.setHost(true);
             try{
                 sendAllAsteroids();
             }
@@ -88,12 +93,12 @@ public class OnlineScene extends GameScene{
         background(0);
         super.showText();
         showTeam();
+        player.show();
         //If we die go back to the main.
         //TODO Change to exit only if everyone is dead.
-        if(!player.show()){
-            scene = 0;
-            return;
-        }
+
+
+
         super.showAsteroids();
         if(isHost)
             super.checkLevel();
@@ -104,6 +109,7 @@ public class OnlineScene extends GameScene{
     public void sendBullet(float x, float y, float angle){
         try{
             String packetString = String.format("%s,4,%.1f,%.1f,%.3f", playerName, x, y, angle);
+            packetString += "~";
             ByteBuffer buffer = ByteBuffer.wrap(packetString.getBytes());
             tcp.write(buffer);
         }
@@ -227,7 +233,7 @@ public class OnlineScene extends GameScene{
     private void runTCP(){
         System.out.println("Thread Made.");
         //Keep searching while we are in this scene.
-        while(true){
+        while(temp){
             String temp = "";
             try{
                 ByteBuffer buffer = ByteBuffer.allocate(1024);
@@ -239,7 +245,6 @@ public class OnlineScene extends GameScene{
             }
             catch(Exception e){
                 System.out.println("Error in runTCP (onlineScene): " + e);
-                break;
             }
 
         }
@@ -252,13 +257,21 @@ public class OnlineScene extends GameScene{
         String[] splitMessage = packet.split(",");
         //System.out.println(packet);
         if (splitMessage[1].equals("3")){
+            asteroids.clear();
+            System.out.println(asteroids.size());
             setAsteroids(splitMessage);
         }
         if (splitMessage[1].equals("4")){
             float tempX = Float.parseFloat(splitMessage[2]);
             float tempY = Float.parseFloat(splitMessage[3]);
             float tempAnle = Float.parseFloat(splitMessage[4]);
-            player.addBullet(new Bullet(tempX, tempY, tempAnle, false));
+
+            //If we are the host we keep track of bullet hits
+            if (isHost)
+                player.addBullet(new Bullet(tempX, tempY, tempAnle));
+            //Else we just send the bullets.
+            else
+                player.addBullet(new Bullet(tempX, tempY, tempAnle));
         }
         if (splitMessage[1].equals("5")){
             int tempIndex = Integer.parseInt(splitMessage[2]);
