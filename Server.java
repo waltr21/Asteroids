@@ -228,12 +228,22 @@ public class Server{
     }
 
     private void removeClient(SocketChannel sc){
+        String name = "";
         for (int i = 0; i < TCPclients.size(); i++){
             NameSocket ns = TCPclients.get(i);
             if (ns.socketC.equals(sc)){
                 //System.out.println("Removed: " + ns.name);
                 TCPclients.remove(i);
-                System.out.println("Removed: " + ns.name + "\nClients Size: " + TCPclients.size());
+                name = ns.name;
+                System.out.println("Removed TCP: " + ns.name);
+                break;
+            }
+        }
+        //Remove UDP as well.
+        for (NameSocket ns : UDPclients){
+            if (ns.name.equals(name)){
+                System.out.println("Removed UDP: " + ns.name);
+                UDPclients.remove(ns);
                 break;
             }
         }
