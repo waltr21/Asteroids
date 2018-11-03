@@ -8,6 +8,7 @@ public class OnlineScene extends GameScene{
     boolean isHost, temp;
     InetSocketAddress socket;
     ArrayList<TeamShip> teammates;
+    long timeStamp;
 
     /**
      * Constructor method for the OnlineScene class.
@@ -18,6 +19,7 @@ public class OnlineScene extends GameScene{
         super();
         this.isHost = host;
         temp = true;
+        timeStamp = millis();
 
         player.setLives(1);
 
@@ -104,6 +106,13 @@ public class OnlineScene extends GameScene{
             super.checkLevel();
 
         sendLoc();
+
+        if (isHost){
+            if (millis() - timeStamp > 10000){
+                sendAllAsteroids();
+                timeStamp = millis();
+            }
+        }
     }
 
     public void sendBullet(float x, float y, float angle){
@@ -120,9 +129,9 @@ public class OnlineScene extends GameScene{
 
 
     private void sendAllAsteroids(){
-        String packString = playerName + ",3";
+        String packString = playerName + ",6";
         for (Asteroid a : asteroids){
-            packString += String.format(",%.1f!%.1f!%.2f!%d", a.getX(), a.getY(), a.getAngle(), a.getLevel());
+            packString += String.format(",%.1f!%.1f!%.2f!%d!%d", a.getX(), a.getY(), a.getAngle(), a.getLevel(), a.getID());
         }
         packString += "~";
         ByteBuffer buffer = ByteBuffer.wrap(packString.getBytes());
@@ -137,7 +146,7 @@ public class OnlineScene extends GameScene{
 
     public void sendAsteroids(Asteroid a){
         String packString = playerName + ",3";
-        packString += String.format(",%.1f!%.1f!%.2f!%d", a.getX(), a.getY(), a.getAngle(), a.getLevel());
+        packString += String.format(",%.1f!%.1f!%.2f!%d!%d", a.getX(), a.getY(), a.getAngle(), a.getLevel(), a.getID());
         packString += "~";
         ByteBuffer buffer = ByteBuffer.wrap(packString.getBytes());
         try{
@@ -218,9 +227,9 @@ public class OnlineScene extends GameScene{
         }
     }
 
-    public void sendRemove(int index){
+    public void sendRemove(int id){
         try{
-            String packString = playerName + ",5," + index;
+            String packString = playerName + ",5," + id;
             packString += "~";
             ByteBuffer buffer = ByteBuffer.wrap(packString.getBytes());
             tcp.write(buffer);
@@ -257,8 +266,13 @@ public class OnlineScene extends GameScene{
         String[] splitMessage = packet.split(",");
         //System.out.println(packet);
         if (splitMessage[1].equals("3")){
+            //asteroids.clear();
+            //System.out.println(asteroids.size());
+            setAsteroids(splitMessage);
+        }
+        if (splitMessage[1].equals("6")){
             asteroids.clear();
-            System.out.println(asteroids.size());
+            //System.out.println(asteroids.size());
             setAsteroids(splitMessage);
         }
         if (splitMessage[1].equals("4")){
@@ -274,8 +288,13 @@ public class OnlineScene extends GameScene{
                 player.addBullet(new Bullet(tempX, tempY, tempAnle));
         }
         if (splitMessage[1].equals("5")){
-            int tempIndex = Integer.parseInt(splitMessage[2]);
-            asteroids.remove(tempIndex);
+            int tempID = Integer.parseInt(splitMessage[2]);
+            for (Asteroid a : asteroids){
+                if (a.getID() == tempID){
+                    asteroids.remove(a);
+                    break;
+                }
+            }
         }
     }
 
@@ -286,7 +305,8 @@ public class OnlineScene extends GameScene{
             float tempY = Float.parseFloat(temp[1]);
             float tempAngle = Float.parseFloat(temp[2]);
             int tempLev = Integer.parseInt(temp[3]);
-            asteroids.add(new Asteroid(tempX, tempY, tempAngle, tempLev));
+            int tempID = Integer.parseInt(temp[4]);
+            asteroids.add(new Asteroid(tempX, tempY, tempAngle, tempLev, tempID));
         }
     }
 }

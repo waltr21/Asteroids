@@ -3,6 +3,7 @@ public class GameScene{
 
     public GameScene(){
         level = 1;
+        aNum = 0;
         resetAstroids(level);
         player.setHost(true);
     }
@@ -25,11 +26,13 @@ public class GameScene{
 
     private void resetAstroids(int level){
         asteroids.clear();
+        aNum = 0;
         int num = 2 + (level * 2);
         for (int i = 0; i < num; i++){
             float tempX = random(50, width - 50);
             float tempY = random(50, height/2 - 150) + ((height/2 + 150) * int(random(0, 2)));
-            asteroids.add(new Asteroid(tempX, tempY, 3));
+            asteroids.add(new Asteroid(tempX, tempY, 3, aNum));
+            aNum++;
             player.resetPos();
             player.clearBullets();
         }

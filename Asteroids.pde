@@ -9,7 +9,7 @@ ArrayList<MenuButton> buttons;
 ArrayList<Asteroid> asteroids;
 MenuButton play, playOnline, network, search, host, menu;
 TextBox nameBox, addressBox, portBox;
-int scene, level, port;
+int scene, level, port, aNum;
 Ship player;
 DatagramChannel udp;
 SocketChannel tcp;

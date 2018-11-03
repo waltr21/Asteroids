@@ -258,7 +258,7 @@ public class Ship{
             shoot();
         }
 
-        if (k == '\n'){
+        if (k == 's'){
             hyperDrive();
         }
     }
