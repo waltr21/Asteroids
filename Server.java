@@ -85,11 +85,13 @@ public class Server{
                 //System.out.println(message);
                 String[] splitMessage = message.split(",");
 
+                ByteBuffer buffer2 = ByteBuffer.wrap(message.getBytes());
+
                 if (message.length() > 1){
                     if (UDPclients.size() != TCPclients.size())
                         addClient(splitMessage[0], currentAddress);
 
-                    sendAllUDP(splitMessage[0], buffer);
+                    sendAllUDP(splitMessage[0], buffer2);
                 }
                 else{
                     System.out.println("Lost connection to client. Breaking...");
@@ -232,9 +234,9 @@ public class Server{
             if (!ns.name.equals(name)){
                 try{
                     //System.out.println("Sent packet");
-                    buffer.flip();
-
+                    // buffer.position(0);
                     udp.send(buffer, ns.socketA);
+                    buffer.flip();
                     //System.out.println(String.format("Sender: %s    receiver: %s", name, ns.name));
                     //System.out.println("Sent to: " + i);
                     // ns.socketA.send(buffer);

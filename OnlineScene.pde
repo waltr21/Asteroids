@@ -239,14 +239,21 @@ public class OnlineScene extends GameScene{
         float tempX = Float.parseFloat(xString);
         float tempY = Float.parseFloat(yString);
         float tempAngle = Float.parseFloat(angleString);
+        boolean found = false;
 
         //Search for ship by name and then set.
         for (TeamShip ts : teammates){
             if (ts.getName().equals(name)){
                 ts.setPos(tempX, tempY, tempAngle);
                 ts.setDead(b);
+                found = true;
                 break;
             }
+        }
+
+        if (!found){
+            teammates.add(new TeamShip(name));
+
         }
     }
 
