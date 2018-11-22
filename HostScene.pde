@@ -66,7 +66,7 @@ public class HostScene{
 
         hostBool = true;
         searchBool = false;
-        address = "127.0.0.1";
+        // address = "127.0.0.1";
         sendHostPacket();
         if (!error){
             host.setText("Start");

@@ -21,7 +21,7 @@ NetworkScene networkScene;
 boolean online;
 
 void setup(){
-    size(900, 900, OPENGL);
+    size(700, 700, OPENGL);
     initScene();
 }
 
@@ -36,7 +36,7 @@ void initScene(){
     scene = 0;
     level = 1;
     buttons = new ArrayList<MenuButton>();
-    address = "127.0.0.1";
+    // address = "127.0.0.1";
     port = 8765;
     online = false;
 

@@ -80,7 +80,7 @@ public class Server{
             while(true){
                 ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
                 SocketAddress currentAddress = udp.receive(buffer);
-                buffer.flip();
+                //buffer.flip();
                 String message = new String(buffer.array()).trim();
                 //System.out.println(message);
                 String[] splitMessage = message.split(",");
@@ -214,7 +214,7 @@ public class Server{
             if (!ns.name.equals(name)){
                 try{
                     //System.out.println("Sent packet");
-                    Thread.sleep(50);
+                    //Thread.sleep(50);
                     ns.socketC.write(buffer);
                     buffer.flip();
                 }
@@ -232,8 +232,9 @@ public class Server{
             if (!ns.name.equals(name)){
                 try{
                     //System.out.println("Sent packet");
-                    udp.send(buffer, ns.socketA);
                     buffer.flip();
+
+                    udp.send(buffer, ns.socketA);
                     //System.out.println(String.format("Sender: %s    receiver: %s", name, ns.name));
                     //System.out.println("Sent to: " + i);
                     // ns.socketA.send(buffer);
