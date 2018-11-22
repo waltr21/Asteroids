@@ -16,6 +16,10 @@ public class TeamShip{
         return name;
     }
 
+    public void setDead(boolean b){
+        dead = b;
+    }
+
     public void setPos(float x, float y, float angle){
         this.x = x;
         this.y = y;
@@ -23,19 +27,21 @@ public class TeamShip{
     }
 
     public void show(){
-        pushMatrix();
+        if (!dead){
+            pushMatrix();
 
-        noFill();
-        stroke(255);
-        strokeWeight(3);
+            noFill();
+            stroke(255);
+            strokeWeight(3);
 
-        translate(x, y);
-        rotate(angle);
-        triangle(-size, size, 0, -size - 5, size, size);
-        fill(255);
-        textSize(20);
+            translate(x, y);
+            rotate(angle);
+            triangle(-size, size, 0, -size - 5, size, size);
+            fill(255);
+            textSize(20);
 
-        popMatrix();
-        text(name, x, y + 30 + size);
+            popMatrix();
+            text(name, x, y + 30 + size);
+        }
     }
 }

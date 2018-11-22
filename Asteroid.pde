@@ -1,6 +1,7 @@
 public class Asteroid{
     float x, y, size, angle, maxLevel;
-    int level, aID;
+    int level;
+    String aID;
     PVector velocity;
 
     /**
@@ -9,7 +10,7 @@ public class Asteroid{
      * @param y     Y pos of the asteroid
      * @param level Level of asteroid (1-3)
      */
-    public Asteroid(float x, float y, int level, int aID){
+    public Asteroid(float x, float y, int level){
         this.x = x;
         this.y = y;
         this.size = 30 * level;
@@ -18,10 +19,21 @@ public class Asteroid{
         this.angle = random(-PI, PI);
         this.velocity = PVector.fromAngle(angle);
         this.velocity.mult( (float) ((maxLevel+1) - level) * 0.8);
-        this.aID = aID;
+        while(true){
+            boolean repeat = false;
+            aID = getRandID();
+            for(Asteroid a : asteroids){
+                if(a.getID().equals(aID)){
+                    repeat = true;
+                }
+            }
+
+            if (!repeat)
+                break;
+        }
     }
 
-    public Asteroid(float x, float y, float a, int level, int aID){
+    public Asteroid(float x, float y, float a, int level, String aID){
         this.x = x;
         this.y = y;
         this.size = 30 * level;
@@ -67,15 +79,11 @@ public class Asteroid{
     }
 
     public void explode(){
-        if (online){
-            onlineScene.sendRemove(aID);
-        }
         if (level > 1){
             int index = asteroids.indexOf(this);
 
             for (int i = 0; i < 2; i++){
-                Asteroid newAsteroid = new Asteroid(x, y, level - 1, aNum);
-                aNum++;
+                Asteroid newAsteroid = new Asteroid(x, y, level - 1);
                 asteroids.add(newAsteroid);
                 if (online){
                     onlineScene.sendAsteroids(newAsteroid);
@@ -83,9 +91,12 @@ public class Asteroid{
             }
             asteroids.remove(this);
         }
-
         else{
             asteroids.remove(this);
+        }
+
+        if (online){
+            onlineScene.sendRemove(aID);
         }
 
     }
@@ -122,7 +133,7 @@ public class Asteroid{
         return y;
     }
 
-    public int getID(){
+    public String getID(){
         return aID;
     }
 
@@ -140,5 +151,14 @@ public class Asteroid{
 
     public float getSize(){
         return size;
+    }
+
+    public String getRandID(){
+        String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        String word = "";
+        for(int i = 0; i < 3; i++){
+            word += chars.charAt(int(random(chars.length())));
+        }
+        return word;
     }
 }

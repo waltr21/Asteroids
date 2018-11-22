@@ -174,6 +174,10 @@ public class Ship{
         }
     }
 
+    public void setAlive(){
+        dead = false;
+    }
+
     private void checkNoHit(){
         if(noHit){
             if (millis() - timeStamp > 3000)
@@ -182,7 +186,7 @@ public class Ship{
     }
 
     private void shoot(){
-        if (bullets.size() < 40){
+        if (bullets.size() < 4 && !dead){
             addBullet(new Bullet(x, y, angle));
             //Also send the bullet if we are online.
             if (onlineScene != null){
@@ -197,10 +201,10 @@ public class Ship{
     }
 
     public void addBullet(Bullet b){
-        if (host)
-            b.setOwner(true);
-        else
-            b.setOwner(false);
+        // if (host)
+        //     b.setOwner(true);
+        // else
+        //b.setOwner(true);
 
         bullets.add(b);
     }
@@ -308,6 +312,7 @@ public class Ship{
 
     public void setLives(int l){
         lives = l;
+        maxLives = l;
     }
 
     public int getScore(){
