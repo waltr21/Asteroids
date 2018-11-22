@@ -238,8 +238,8 @@ public class Ship{
             popMatrix();
             return true;
         }
-        resetVars();
-        resetPos();
+        // resetVars();
+        // resetPos();
         return false;
     }
 
