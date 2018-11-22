@@ -233,6 +233,7 @@ public class Server{
                 try{
                     //System.out.println("Sent packet");
                     udp.send(buffer, ns.socketA);
+                    buffer.flip();
                     //System.out.println(String.format("Sender: %s    receiver: %s", name, ns.name));
                     //System.out.println("Sent to: " + i);
                     // ns.socketA.send(buffer);
