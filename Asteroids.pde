@@ -168,14 +168,34 @@ void mousePressed(){
  * Button released handle.
  */
 void keyReleased(){
-    player.processButtonReleased(key);
+    int code;
+    if (keyCode > 40){
+        code = int(Character.toLowerCase(key));
+    }
+    else{
+        code = keyCode;
+    }
+    player.processButtonReleased(int(Character.toLowerCase(code)));
 }
 
 /**
  * Button pressed handle.
  */
 void keyPressed(){
-    player.processButtonPress(key);
+    // char k = key;
+    //System.out.println(keyCode);
+    int code;
+    if (keyCode > 40){
+        code = int(Character.toLowerCase(key));
+    }
+    else{
+        code = keyCode;
+    }
+    // System.out.println("KeyCode: " + keyCode);
+    // System.out.println("Code: " + code);
+
+
+    player.processButtonPress(code);
     if (scene == 6){
         nameBox.processKey(keyCode);
         addressBox.processKey(keyCode);
