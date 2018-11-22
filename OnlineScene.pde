@@ -345,6 +345,7 @@ public class OnlineScene extends GameScene{
             level++;
             out = false;
             player.setAlive();
+            player.resetPos();
         }
     }
 
