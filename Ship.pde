@@ -239,7 +239,7 @@ public class Ship{
             return true;
         }
         // resetVars();
-        // resetPos();
+        resetPos();
         return false;
     }
 
