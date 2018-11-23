@@ -194,7 +194,7 @@ void keyPressed(){
         code = keyCode;
     }
 
-    if (key == ENTER)
+    if (key == TAB)
         scene = 0;
     // System.out.println("KeyCode: " + keyCode);
     // System.out.println("Code: " + code);
