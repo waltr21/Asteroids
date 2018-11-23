@@ -4,9 +4,11 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 
 ArrayList<MenuButton> buttons;
-ArrayList<Asteroid> asteroids;
+CopyOnWriteArrayList<Asteroid> asteroids;
 MenuButton play, playOnline, network, search, host, menu;
 TextBox nameBox, addressBox, portBox;
 int scene, level, port;
@@ -67,7 +69,7 @@ void initScene(){
     portBox.setInt();
     portBox.setLimit(6);
 
-    asteroids = new ArrayList<Asteroid>();
+    asteroids = new CopyOnWriteArrayList<Asteroid>();
     soloScene = new GameScene();
     //onlineScene = new OnlineScene();
     hostScene = new HostScene();
