@@ -24,6 +24,10 @@ public class Bullet{
         owner = b;
     }
 
+    public boolean isOwner(){
+        return owner;
+    }
+
     public boolean bound(){
         if (x + size < 0){
             x = width + size;

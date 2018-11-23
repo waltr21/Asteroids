@@ -202,7 +202,6 @@ public class HostScene{
             onlineScene = new OnlineScene(false);
             onlineScene.setTeam(clientList);
             scene = 2;
-
         }
     }
 

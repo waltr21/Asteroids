@@ -1,7 +1,7 @@
 public class Ship{
     float x, y, size, angle, turnRadius, deRate;
     ArrayList<Integer> pressedChars;
-    ArrayList<Bullet> bullets;
+    ArrayList<Bullet> bullets, ownBullets;
     boolean turn, accelerate, dead, noHit, host;
     long timeStamp;
     int k;
@@ -33,6 +33,7 @@ public class Ship{
         //(Mainly used for making turning less janky.)
         this.pressedChars = new ArrayList<Integer>();
         this.bullets = new ArrayList<Bullet>();
+        this.ownBullets = new ArrayList<Bullet>();
         this.velocity = new PVector();
     }
 
@@ -116,6 +117,7 @@ public class Ship{
 
     public void clearBullets(){
         bullets.clear();
+        numBullets = 0;
     }
 
     /**
@@ -155,8 +157,11 @@ public class Ship{
             b.show();
 
             //If the bullet is out of the screen then we want to remove it.
-            if (b.bound())
+            if (b.bound()){
                 bullets.remove(i);
+                if(b.isOwner())
+                    ownBullets.remove(b);
+            }
         }
     }
 
@@ -186,7 +191,10 @@ public class Ship{
     }
 
     private void shoot(){
-        if (bullets.size() < 40 && !dead){
+        if (numBullets < 0){
+            numBullets = 0;
+        }
+        if (ownBullets.size() < 4 && !dead){
             addBullet(new Bullet(x, y, angle));
             //Also send the bullet if we are online.
             if (onlineScene != null){
@@ -207,6 +215,8 @@ public class Ship{
         //b.setOwner(true);
 
         bullets.add(b);
+        if (b.isOwner())
+            ownBullets.add(b);
     }
 
     /**

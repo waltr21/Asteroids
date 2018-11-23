@@ -11,7 +11,7 @@ ArrayList<MenuButton> buttons;
 CopyOnWriteArrayList<Asteroid> asteroids;
 MenuButton play, playOnline, network, search, host, menu;
 TextBox nameBox, addressBox, portBox;
-int scene, level, port;
+int scene, level, port, numBullets;
 Ship player;
 DatagramChannel udp;
 SocketChannel tcp;
@@ -23,7 +23,7 @@ NetworkScene networkScene;
 boolean online;
 
 void setup(){
-    size(900, 900, OPENGL);
+    size(1000, 700, OPENGL);
     initScene();
 }
 
@@ -37,6 +37,7 @@ void initScene(){
     player = new Ship();
     scene = 0;
     level = 1;
+    numBullets = 0;
     buttons = new ArrayList<MenuButton>();
     // address = "127.0.0.1";
     port = 8765;
