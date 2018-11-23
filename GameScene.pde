@@ -4,7 +4,9 @@ public class GameScene{
     public GameScene(){
         level = 1;
         resetAstroids(level);
+        player = new Ship();
         player.setHost(true);
+
     }
 
     /**
@@ -20,7 +22,7 @@ public class GameScene{
         for (int i = 0; i < player.getLives(); i++){
             liveString += " | ";
         }
-        text(liveString, 50, 50);
+        text(liveString, width - 50, 50);
     }
 
     private void resetAstroids(int level){
@@ -49,16 +51,19 @@ public class GameScene{
         }
     }
 
-    private void checkLevel(){
+    private boolean checkLevel(){
         if (asteroids.size() < 1){
             level++;
             resetAstroids(level);
+            return true;
         }
+        return false;
     }
 
     public void show(){
         background(0);
         showText();
+        player.showBullets();
         if(!player.show()){
             scene = 0;
             return;

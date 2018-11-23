@@ -10,7 +10,7 @@ public class Bullet{
         this.angle = angle - PI/2;
         this.size = 5;
         this.count = 0;
-        this.owner = false;
+        this.owner = true;
         this.velocity = PVector.fromAngle(this.angle);
         this.velocity.mult(8);
     }
@@ -22,6 +22,10 @@ public class Bullet{
 
     public void setOwner(boolean b){
         owner = b;
+    }
+
+    public boolean isOwner(){
+        return owner;
     }
 
     public boolean bound(){

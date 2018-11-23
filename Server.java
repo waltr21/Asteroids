@@ -4,9 +4,12 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.Scanner;
 
 public class Server{
     private int port;
+    private int numErrors;
+
     private final int BUFFER_SIZE;
     private DatagramChannel udp;
     private ServerSocketChannel tcp;
@@ -17,6 +20,7 @@ public class Server{
     public static SocketChannel sc;
 
     public Server(){
+        numErrors = 0;
         port = 8765;
         BUFFER_SIZE = 1024;
         TCPclients = new ArrayList<>();
@@ -28,6 +32,7 @@ public class Server{
         }
         catch(Exception e){
             System.out.println(e);
+            numErrors++;
         }
 
         Thread threadUDP = new Thread(new Runnable() {
@@ -38,9 +43,17 @@ public class Server{
         System.out.println("Thread Created.");
         threadUDP.start();
 
+        Thread keyThread = new Thread(new Runnable() {
+           public void run() {
+               keyListen();
+           }
+        });
+        keyThread.start();
+
         while (true){
             try{
                 sc = tcp.accept();
+
                 Thread threadTCP = new Thread(new Runnable() {
                   public void run() {
                       runTCP(sc);
@@ -51,6 +64,7 @@ public class Server{
             }
             catch(Exception e){
                 System.out.println(e);
+                numErrors++;
             }
         }
     }
@@ -66,16 +80,18 @@ public class Server{
             while(true){
                 ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
                 SocketAddress currentAddress = udp.receive(buffer);
-                buffer.flip();
+                //buffer.flip();
                 String message = new String(buffer.array()).trim();
                 //System.out.println(message);
                 String[] splitMessage = message.split(",");
+
+                ByteBuffer buffer2 = ByteBuffer.wrap(message.getBytes());
 
                 if (message.length() > 1){
                     if (UDPclients.size() != TCPclients.size())
                         addClient(splitMessage[0], currentAddress);
 
-                    sendAllUDP(splitMessage[0], buffer);
+                    sendAllUDP(splitMessage[0], buffer2);
                 }
                 else{
                     System.out.println("Lost connection to client. Breaking...");
@@ -91,6 +107,7 @@ public class Server{
         catch(Exception e){
             System.out.println("UDP fail: ");
             System.out.println(e);
+            numErrors++;
         }
     }
 
@@ -103,10 +120,11 @@ public class Server{
         for (int i = 0; i < splitMessage.length; i++){
             parseTCP(splitMessage[i], sc);
             try{
-                Thread.sleep(15);
+                Thread.sleep(20);
             }
             catch(Exception e){
                 System.out.println("Error in splitPackets: " + e);
+                numErrors++;
             }
         }
 
@@ -133,7 +151,7 @@ public class Server{
         //Exceptions.
         catch(Exception e){
             System.out.println("TCP Fail: ");
-
+            numErrors++;
             System.out.println(e);
         }
     }
@@ -198,12 +216,13 @@ public class Server{
             if (!ns.name.equals(name)){
                 try{
                     //System.out.println("Sent packet");
-                    Thread.sleep(50);
+                    //Thread.sleep(50);
                     ns.socketC.write(buffer);
                     buffer.flip();
                 }
                 catch(Exception e){
                     System.out.println(e);
+                    numErrors++;
                 }
             }
         }
@@ -215,25 +234,38 @@ public class Server{
             if (!ns.name.equals(name)){
                 try{
                     //System.out.println("Sent packet");
+                    // buffer.position(0);
                     udp.send(buffer, ns.socketA);
+                    buffer.flip();
                     //System.out.println(String.format("Sender: %s    receiver: %s", name, ns.name));
                     //System.out.println("Sent to: " + i);
                     // ns.socketA.send(buffer);
                 }
                 catch(Exception e){
                     System.out.println(e);
+                    numErrors++;
                 }
             }
         }
     }
 
     private void removeClient(SocketChannel sc){
+        String name = "";
         for (int i = 0; i < TCPclients.size(); i++){
             NameSocket ns = TCPclients.get(i);
             if (ns.socketC.equals(sc)){
                 //System.out.println("Removed: " + ns.name);
                 TCPclients.remove(i);
-                System.out.println("Removed: " + ns.name + "\nClients Size: " + TCPclients.size());
+                name = ns.name;
+                System.out.println("Removed TCP: " + ns.name);
+                break;
+            }
+        }
+        //Remove UDP as well.
+        for (NameSocket ns : UDPclients){
+            if (ns.name.equals(name)){
+                System.out.println("Removed UDP: " + ns.name);
+                UDPclients.remove(ns);
                 break;
             }
         }
@@ -262,14 +294,62 @@ public class Server{
                 }
                 catch(Exception e){
                     System.out.println(e);
+                    numErrors++;
                 }
             }
         }
     }
 
+    private void keyListen(){
+        Scanner listener = new Scanner(System.in);
+        String ip;
+        try{
+            InetAddress localhost = InetAddress.getLocalHost();
+            ip = localhost.getHostAddress().trim();
+        }
+        catch(Exception e){
+            ip = "Error";
+            numErrors++;
+        }
+        while(true){
+            // String tempIP = "";
+            // if (sc)
+            String x = listener.nextLine();
+            if (x.equals("c")){
+                UDPclients.clear();
+                TCPclients.clear();
+                System.out.println("Clients cleared");
+            }
+            else{
+                System.out.println("----------------------- Stats -----------------------");
+                System.out.println("Port: " + port);
+                System.out.println("IP: " + ip);
+                System.out.println("Errors: " + numErrors);
+                printArrays();
+                System.out.println("----------------------- Stats -----------------------");
+            }
+        }
+    }
+
+    private void printArrays(){
+        System.out.print("TCP clients: ");
+        for (NameSocket ns : TCPclients){
+            System.out.print(ns.name + ", ");
+        }
+        System.out.println("");
+
+        System.out.print("UDP clients: ");
+        for (NameSocket ns : UDPclients){
+            System.out.print(ns.name + ", ");
+        }
+        System.out.println("");
+    }
+
     public static void main(String args[]){
         Server s = new Server();
     }
+
+
 }
 
 class NameSocket{

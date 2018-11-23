@@ -1,10 +1,10 @@
 public class Ship{
     float x, y, size, angle, turnRadius, deRate;
-    ArrayList<Character> pressedChars;
-    ArrayList<Bullet> bullets;
+    ArrayList<Integer> pressedChars;
+    ArrayList<Bullet> bullets, ownBullets;
     boolean turn, accelerate, dead, noHit, host;
     long timeStamp;
-    char k;
+    int k;
     int lives, maxLives, score;
     PVector velocity;
 
@@ -31,8 +31,9 @@ public class Ship{
         this.score = 0;
         //ArrayList for the current pressed characters.
         //(Mainly used for making turning less janky.)
-        this.pressedChars = new ArrayList<Character>();
+        this.pressedChars = new ArrayList<Integer>();
         this.bullets = new ArrayList<Bullet>();
+        this.ownBullets = new ArrayList<Bullet>();
         this.velocity = new PVector();
     }
 
@@ -41,11 +42,11 @@ public class Ship{
      * If there are no characters left then we stop turning.
      * @param k key entered by the user.
      */
-    private void freezeTurn(char k){
+    private void freezeTurn(int code){
 
         //Loop through and find characters we should remove.
         for (int i = pressedChars.size() - 1; i >= 0; i--){
-            if (pressedChars.get(i) == k){
+            if (pressedChars.get(i) == code){
                 pressedChars.remove(i);
             }
         }
@@ -59,10 +60,10 @@ public class Ship{
      * Tell the ship to start to turn in the appropriate direction.
      * @param k key entered by the user.
      */
-    private void setTurn(char k){
+    private void setTurn(int code){
         //System.out.println("Turn");
         turn = true;
-        this.k = Character.toLowerCase(k);
+        this.k = code;
         pressedChars.add(this.k);
     }
 
@@ -72,10 +73,10 @@ public class Ship{
     private void turn(){
         //Make sure we are in the scene and we should be turning.
         if (turn){
-            if (k == 'a'){
+            if (k == 'a' || k == 37){
                 angle -= turnRadius;
             }
-            if (k == 'd'){
+            if (k == 'd' || k == 39){
                 angle += turnRadius;
             }
         }
@@ -116,6 +117,8 @@ public class Ship{
 
     public void clearBullets(){
         bullets.clear();
+        ownBullets.clear();
+        numBullets = 0;
     }
 
     /**
@@ -155,8 +158,11 @@ public class Ship{
             b.show();
 
             //If the bullet is out of the screen then we want to remove it.
-            if (b.bound())
+            if (b.bound()){
                 bullets.remove(i);
+                if(b.isOwner())
+                    ownBullets.remove(b);
+            }
         }
     }
 
@@ -174,6 +180,10 @@ public class Ship{
         }
     }
 
+    public void setAlive(){
+        dead = false;
+    }
+
     private void checkNoHit(){
         if(noHit){
             if (millis() - timeStamp > 3000)
@@ -182,7 +192,10 @@ public class Ship{
     }
 
     private void shoot(){
-        if (bullets.size() < 40){
+        if (numBullets < 0){
+            numBullets = 0;
+        }
+        if (ownBullets.size() < 4 && !dead){
             addBullet(new Bullet(x, y, angle));
             //Also send the bullet if we are online.
             if (onlineScene != null){
@@ -197,12 +210,14 @@ public class Ship{
     }
 
     public void addBullet(Bullet b){
-        if (host)
-            b.setOwner(true);
-        else
-            b.setOwner(false);
+        // if (host)
+        //     b.setOwner(true);
+        // else
+        //b.setOwner(true);
 
         bullets.add(b);
+        if (b.isOwner())
+            ownBullets.add(b);
     }
 
     /**
@@ -213,7 +228,7 @@ public class Ship{
             checkNoHit();
             pushMatrix();
             //Display the bullets
-            showBullets();
+            //showBullets();
 
             //Edit pos of the ship.
             turn();
@@ -234,7 +249,7 @@ public class Ship{
             popMatrix();
             return true;
         }
-        resetVars();
+        // resetVars();
         resetPos();
         return false;
     }
@@ -243,22 +258,20 @@ public class Ship{
      * Handle the button pressed by the user.
      * @param k key entered by the user.
      */
-    public void processButtonPress(char k){
-
-        k = Character.toLowerCase(k);
-        if (k == 'a' || k == 'd'){
-            setTurn(k);
+    public void processButtonPress(int code){
+        if (code == 97 || code == 100 || code == 37 || code == 39){
+            setTurn(code);
         }
 
-        if (k == 'w'){
+        if (code == 119 || code == 38){
             accelerate = true;
         }
 
-        if (k == ' '){
+        if (code == 32){
             shoot();
         }
 
-        if (k == '\n'){
+        if (code == 115 || code == 40){
             hyperDrive();
         }
     }
@@ -267,12 +280,11 @@ public class Ship{
      * Handle the button released by the user.
      * @param k key entered by the user.
      */
-    public void processButtonReleased(char k){
-        k = Character.toLowerCase(k);
-        if (k == 'a' || k == 'd'){
-            freezeTurn(k);
+    public void processButtonReleased(int code){
+        if (code == 97 || code == 100 || code == 37 || code == 39){
+            freezeTurn(code);
         }
-        if (k == 'w'){
+        if (code == 119 || code == 38){
             accelerate = false;
         }
     }
@@ -308,6 +320,7 @@ public class Ship{
 
     public void setLives(int l){
         lives = l;
+        maxLives = l;
     }
 
     public int getScore(){

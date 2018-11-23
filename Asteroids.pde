@@ -4,12 +4,14 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 
 ArrayList<MenuButton> buttons;
-ArrayList<Asteroid> asteroids;
+CopyOnWriteArrayList<Asteroid> asteroids;
 MenuButton play, playOnline, network, search, host, menu;
 TextBox nameBox, addressBox, portBox;
-int scene, level, port;
+int scene, level, port, numBullets;
 Ship player;
 DatagramChannel udp;
 SocketChannel tcp;
@@ -21,7 +23,7 @@ NetworkScene networkScene;
 boolean online;
 
 void setup(){
-    size(900, 900, OPENGL);
+    size(1000, 700, OPENGL);
     initScene();
 }
 
@@ -35,8 +37,9 @@ void initScene(){
     player = new Ship();
     scene = 0;
     level = 1;
+    numBullets = 0;
     buttons = new ArrayList<MenuButton>();
-    address = "127.0.0.1";
+    // address = "127.0.0.1";
     port = 8765;
     online = false;
 
@@ -67,7 +70,7 @@ void initScene(){
     portBox.setInt();
     portBox.setLimit(6);
 
-    asteroids = new ArrayList<Asteroid>();
+    asteroids = new CopyOnWriteArrayList<Asteroid>();
     soloScene = new GameScene();
     //onlineScene = new OnlineScene();
     hostScene = new HostScene();
@@ -168,14 +171,37 @@ void mousePressed(){
  * Button released handle.
  */
 void keyReleased(){
-    player.processButtonReleased(key);
+    int code;
+    if (keyCode > 40){
+        code = int(Character.toLowerCase(key));
+    }
+    else{
+        code = keyCode;
+    }
+    player.processButtonReleased(int(Character.toLowerCase(code)));
 }
 
 /**
  * Button pressed handle.
  */
 void keyPressed(){
-    player.processButtonPress(key);
+    // char k = key;
+    //System.out.println(keyCode);
+    int code;
+    if (keyCode > 40){
+        code = int(Character.toLowerCase(key));
+    }
+    else{
+        code = keyCode;
+    }
+
+    if (key == TAB)
+        scene = 0;
+    // System.out.println("KeyCode: " + keyCode);
+    // System.out.println("Code: " + code);
+
+
+    player.processButtonPress(code);
     if (scene == 6){
         nameBox.processKey(keyCode);
         addressBox.processKey(keyCode);

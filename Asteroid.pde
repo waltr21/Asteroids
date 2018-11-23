@@ -1,6 +1,7 @@
 public class Asteroid{
     float x, y, size, angle, maxLevel;
     int level;
+    String aID;
     PVector velocity;
 
     /**
@@ -18,9 +19,21 @@ public class Asteroid{
         this.angle = random(-PI, PI);
         this.velocity = PVector.fromAngle(angle);
         this.velocity.mult( (float) ((maxLevel+1) - level) * 0.8);
+        while(true){
+            boolean repeat = false;
+            aID = getRandID();
+            for(Asteroid a : asteroids){
+                if(a.getID().equals(aID)){
+                    repeat = true;
+                }
+            }
+
+            if (!repeat)
+                break;
+        }
     }
 
-    public Asteroid(float x, float y, float a, int level){
+    public Asteroid(float x, float y, float a, int level, String aID){
         this.x = x;
         this.y = y;
         this.size = 30 * level;
@@ -29,6 +42,7 @@ public class Asteroid{
         this.angle = a;
         this.velocity = PVector.fromAngle(angle);
         this.velocity.mult(((maxLevel+1) - level) * 0.8);
+        this.aID = aID;
     }
 
 
@@ -67,22 +81,24 @@ public class Asteroid{
     public void explode(){
         if (level > 1){
             int index = asteroids.indexOf(this);
+
             for (int i = 0; i < 2; i++){
                 Asteroid newAsteroid = new Asteroid(x, y, level - 1);
                 asteroids.add(newAsteroid);
+                if (online){
+                    onlineScene.sendAsteroids(newAsteroid);
+                }
             }
-
             asteroids.remove(this);
-
         }
-
         else{
             asteroids.remove(this);
         }
 
         if (online){
-            onlineScene.sendAllAsteroids();
+            onlineScene.sendRemove(aID);
         }
+
     }
 
     public int getScore(){
@@ -94,6 +110,7 @@ public class Asteroid{
             return 20;
 
     }
+
 
     public void show(){
         pushMatrix();
@@ -116,6 +133,10 @@ public class Asteroid{
         return y;
     }
 
+    public String getID(){
+        return aID;
+    }
+
     public int getLevel(){
         return level;
     }
@@ -130,5 +151,14 @@ public class Asteroid{
 
     public float getSize(){
         return size;
+    }
+
+    public String getRandID(){
+        String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        String word = "";
+        for(int i = 0; i < 3; i++){
+            word += chars.charAt(int(random(chars.length())));
+        }
+        return word;
     }
 }
