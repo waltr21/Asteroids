@@ -103,6 +103,8 @@ public class OnlineScene extends GameScene{
                 out = true;
             }
         }
+
+        player.showBullets();
         //If we die go back to the main.
         //TODO Change to exit only if everyone is dead.
 

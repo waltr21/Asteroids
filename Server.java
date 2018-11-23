@@ -120,7 +120,7 @@ public class Server{
         for (int i = 0; i < splitMessage.length; i++){
             parseTCP(splitMessage[i], sc);
             try{
-                Thread.sleep(5);
+                Thread.sleep(20);
             }
             catch(Exception e){
                 System.out.println("Error in splitPackets: " + e);

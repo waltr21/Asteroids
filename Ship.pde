@@ -217,7 +217,7 @@ public class Ship{
             checkNoHit();
             pushMatrix();
             //Display the bullets
-            showBullets();
+            //showBullets();
 
             //Edit pos of the ship.
             turn();

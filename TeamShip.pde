@@ -31,7 +31,7 @@ public class TeamShip{
             pushMatrix();
 
             noFill();
-            stroke(255);
+            stroke(127, 242, 255);
             strokeWeight(3);
 
             translate(x, y);
