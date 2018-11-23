@@ -315,13 +315,19 @@ public class Server{
             // String tempIP = "";
             // if (sc)
             String x = listener.nextLine();
-            System.out.println("----------------------- Stats -----------------------");
-            System.out.println("Port: " + port);
-            System.out.println("IP: " + ip);
-            System.out.println("Errors: " + numErrors);
-            printArrays();
-            System.out.println("----------------------- Stats -----------------------");
-
+            if (x.equals("c")){
+                UDPclients.clear();
+                TCPclients.clear();
+                System.out.println("Clients cleared");
+            }
+            else{
+                System.out.println("----------------------- Stats -----------------------");
+                System.out.println("Port: " + port);
+                System.out.println("IP: " + ip);
+                System.out.println("Errors: " + numErrors);
+                printArrays();
+                System.out.println("----------------------- Stats -----------------------");
+            }
         }
     }
 

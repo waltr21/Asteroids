@@ -349,6 +349,9 @@ public class OnlineScene extends GameScene{
             player.setAlive();
             player.resetPos();
         }
+        if (splitMessage[1].equals("8")){
+            scene = 0;
+        }
     }
 
     private void setAsteroids(String[] splitMessage){

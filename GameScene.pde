@@ -63,6 +63,7 @@ public class GameScene{
     public void show(){
         background(0);
         showText();
+        player.showBullets();
         if(!player.show()){
             scene = 0;
             return;

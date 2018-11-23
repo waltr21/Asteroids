@@ -23,7 +23,7 @@ NetworkScene networkScene;
 boolean online;
 
 void setup(){
-    size(700, 700, OPENGL);
+    size(900, 900, OPENGL);
     initScene();
 }
 
@@ -193,6 +193,9 @@ void keyPressed(){
     else{
         code = keyCode;
     }
+
+    if (key == ENTER)
+        scene = 0;
     // System.out.println("KeyCode: " + keyCode);
     // System.out.println("Code: " + code);
 
