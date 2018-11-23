@@ -96,6 +96,7 @@ public class OnlineScene extends GameScene{
     public void show(){
         background(0);
         super.showText();
+        showPoints();
         showTeam();
 
         if(!out){
@@ -105,10 +106,6 @@ public class OnlineScene extends GameScene{
         }
 
         player.showBullets();
-        //If we die go back to the main.
-        //TODO Change to exit only if everyone is dead.
-
-
 
         super.showAsteroids();
         if(isHost){
@@ -128,6 +125,15 @@ public class OnlineScene extends GameScene{
                 timeStamp = millis();
             }
         }
+    }
+
+    private void showPoints(){
+        String teamPoints = "";
+        for (TeamShip ts : teammates){
+            teamPoints += ts.getName() + ": " + ts.getPoints() + "\n";
+        }
+        textAlign(LEFT);
+        text(teamPoints, 20, 50);
     }
 
     public void sendBullet(float x, float y, float angle){
@@ -197,11 +203,11 @@ public class OnlineScene extends GameScene{
                 //System.out.println(message);
 
 
-                if (coordinates.length == 5){
-                    if (coordinates[4].equals("1"))
-                        setTeamLoc(coordinates[0], coordinates[1], coordinates[2], coordinates[3], false);
+                if (coordinates.length == 6){
+                    if (coordinates[5].equals("1"))
+                        setTeamLoc(coordinates[0], coordinates[1], coordinates[2], coordinates[3], coordinates[4], false);
                     else
-                        setTeamLoc(coordinates[0], coordinates[1], coordinates[2], coordinates[3], true);
+                        setTeamLoc(coordinates[0], coordinates[1], coordinates[2], coordinates[3], coordinates[4], true);
 
                 }
             }
@@ -217,7 +223,7 @@ public class OnlineScene extends GameScene{
      */
     private void sendLoc(){
         try{
-            String temp = String.format("%s,%.1f,%.1f,%.2f,", playerName, player.getX(), player.getY(), player.getAngle());
+            String temp = String.format("%s,%.1f,%.1f,%.2f,%d,", playerName, player.getX(), player.getY(), player.getAngle(), player.getScore());
             if (!out)
                 temp += "1";
             else
@@ -237,10 +243,11 @@ public class OnlineScene extends GameScene{
      * @param yString     Y pos as a string.
      * @param angleString Angle of ship as a string.
      */
-    private void setTeamLoc(String name, String xString, String yString, String angleString, boolean b){
+    private void setTeamLoc(String name, String xString, String yString, String angleString, String score, boolean b){
         float tempX = Float.parseFloat(xString);
         float tempY = Float.parseFloat(yString);
         float tempAngle = Float.parseFloat(angleString);
+        int tempScore = Integer.parseInt(score);
         boolean found = false;
 
         //Search for ship by name and then set.
@@ -248,6 +255,7 @@ public class OnlineScene extends GameScene{
             if (ts.getName().equals(name)){
                 ts.setPos(tempX, tempY, tempAngle);
                 ts.setDead(b);
+                ts.setPoints(tempScore);
                 found = true;
                 break;
             }

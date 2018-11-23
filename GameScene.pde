@@ -22,7 +22,7 @@ public class GameScene{
         for (int i = 0; i < player.getLives(); i++){
             liveString += " | ";
         }
-        text(liveString, 50, 50);
+        text(liveString, width - 50, 50);
     }
 
     private void resetAstroids(int level){

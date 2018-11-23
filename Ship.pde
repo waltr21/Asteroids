@@ -117,6 +117,7 @@ public class Ship{
 
     public void clearBullets(){
         bullets.clear();
+        ownBullets.clear();
         numBullets = 0;
     }
 

@@ -1,6 +1,7 @@
 public class TeamShip{
     String name;
     float x, y, angle, size;
+    int points;
     boolean dead;
 
     public TeamShip(String name){
@@ -9,6 +10,7 @@ public class TeamShip{
         this.y = height/2;
         this.dead = false;
         this.angle = 0;
+        points = 0;
         this.size = 20;
     }
 
@@ -18,6 +20,14 @@ public class TeamShip{
 
     public void setDead(boolean b){
         dead = b;
+    }
+
+    public void setPoints(int p){
+        points = p;
+    }
+
+    public int getPoints(){
+        return points;
     }
 
     public void setPos(float x, float y, float angle){
@@ -41,6 +51,7 @@ public class TeamShip{
             textSize(20);
 
             popMatrix();
+            textAlign(CENTER);
             text(name, x, y + 30 + size);
         }
     }
