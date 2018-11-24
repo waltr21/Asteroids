@@ -237,7 +237,7 @@ public class Ship{
             bound();
 
             noFill();
-            stroke(255);
+            stroke(255, 255, 102);
             if (noHit)
                 stroke(56, 252, 159);
             strokeWeight(3);
